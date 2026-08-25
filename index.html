@@ -8,6 +8,8 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23F3DE9B'/%3E%3Cstop offset='1' stop-color='%23C9A227'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M32 12c-5 0-6.5 3-10.5 3-5.5 0-8 4-8 9.5 0 10 4.8 15 6.8 25 .9 4.8 7 4.7 7.9-.2.7-3.4 1.6-7 3.8-7s3.1 3.6 3.8 7c.9 4.9 7 5 7.9.2 2-10 6.8-15 6.8-25 0-5.5-2.5-9.5-8-9.5-4 0-5.5-3-10.5-3z' fill='%23FFFDF4'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
+<link rel="dns-prefetch" href="https://apicdn.sanity.io">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -824,8 +826,10 @@ footer::before{content:'';position:absolute;inset:0;background:radial-gradient(6
    ═══════════════════════════════════════════════════════════════ */
 const CONFIG = {
   sanity: {
-    projectId: 'j4rqm0i8',        // ← ضع معرف مشروع Sanity هنا لتفعيل لوحة التحكم
+    projectId: 'j4rqm0i8',   // معرف مشروع Sanity — لوحة التحكم مفعّلة
     dataset: 'production',
+    apiVersion: '2024-01-01',
+    useCdn: true,         // true = أسرع (كاش ~60 ثانية) | false = تحديث فوري
   },
   whatsapp: '249912345678',          // افتراضي (تُستبدل من اللوحة)
   phone: '+249 91 234 5678',         // افتراضي (تُستبدل من اللوحة)
@@ -854,15 +858,20 @@ const PH = 'data:image/svg+xml,' + encodeURIComponent(
   "<text x='400' y='450' text-anchor='middle' font-size='30' font-family='sans-serif' fill='#A8841C'>الصورة تُضاف من لوحة التحكم</text></svg>"
 );
 
-/* رابط صورة Sanity من مرجع الأصل */
-const sanityUrl = (ref) => {
+/* رابط صورة Sanity من مرجع الأصل (مع ضغط وتحسين تلقائي) */
+const sanityUrl = (ref, opts = {}) => {
   if (!ref || !ref.startsWith('image-')) return '';
   const [id, dim, ext] = ref.replace('image-', '').split('-');
-  return `https://cdn.sanity.io/images/${CONFIG.sanity.projectId}/${CONFIG.sanity.dataset}/${id}-${dim}.${ext}`;
+  const base = `https://cdn.sanity.io/images/${CONFIG.sanity.projectId}/${CONFIG.sanity.dataset}/${id}-${dim}.${ext}`;
+  const p = new URLSearchParams({auto: 'format', fit: 'max', q: '80'});
+  if (opts.w) p.set('w', opts.w);
+  if (opts.h) p.set('h', opts.h);
+  if (opts.crop) { p.set('fit', 'crop'); p.set('crop', 'entropy'); }
+  return `${base}?${p}`;
 };
-const img = (v) => (v?.asset?._ref ? sanityUrl(v.asset._ref) : (v?.asset?.url || ''));
-const imgOrPH = (v) => img(v) || PH;
-const setImg = (key, v) => { const u = img(v); const el = document.querySelector(`img[data-img="${key}"]`); if (u && el) el.src = u; };
+const img = (v, opts) => (v?.asset?._ref ? sanityUrl(v.asset._ref, opts) : (v?.asset?.url || ''));
+const imgOrPH = (v, opts) => img(v, opts) || PH;
+const setImg = (key, v, opts) => { const u = img(v, opts); const el = document.querySelector(`img[data-img="${key}"]`); if (u && el) { el.src = u; el.removeAttribute('srcset'); } };
 
 /* ═══════════ أيقونات الخدمات ═══════════ */
 const ic = (inner) => `<span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${inner}</svg></span>`;
@@ -923,8 +932,8 @@ function renderCases(list) {
   el.innerHTML = list.map((c) => `
     <article class="case reveal in">
       <div class="ba" data-ba>
-        <img src="${imgOrPH(c.beforeImage)}" alt="قبل — ${esc(c.title)}">
-        <div class="ba-after"><img src="${imgOrPH(c.afterImage)}" alt="بعد — ${esc(c.title)}"></div>
+        <img loading="lazy" src="${imgOrPH(c.beforeImage, {w: 800, h: 600, crop: true})}" alt="قبل — ${esc(c.title)}">
+        <div class="ba-after"><img loading="lazy" src="${imgOrPH(c.afterImage, {w: 800, h: 600, crop: true})}" alt="بعد — ${esc(c.title)}"></div>
         <div class="ba-line"></div>
         <div class="ba-knob">${KNOB}</div>
         <span class="ba-tag tag-a">بعد</span><span class="ba-tag tag-b">قبل</span>
@@ -943,7 +952,7 @@ function renderGallery(list) {
   const el = $('#galGrid'); if (!el || !list.length) return;
   el.innerHTML = list.map((g) => `
     <figure class="gal-item reveal in">
-      <img src="${imgOrPH(g.image)}" alt="${esc(g.caption || 'صورة من العيادة')}">
+      <img loading="lazy" src="${imgOrPH(g.image, {w: 700, h: 700, crop: true})}" alt="${esc(g.caption || 'صورة من العيادة')}">
       ${g.caption ? `<figcaption>${esc(g.caption)}</figcaption>` : ''}
     </figure>`).join('');
 }
@@ -952,7 +961,7 @@ function renderDoctors(list) {
   const el = $('#docGrid'); if (!el || !list.length) return;
   el.innerHTML = list.map((d, i) => {
     const avatar = img(d.photo)
-      ? `<img class="avatar" src="${img(d.photo)}" alt="${esc(d.name)}" style="width:112px;height:112px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 10px 22px rgba(201,162,39,.3)">`
+      ? `<img class="avatar" loading="lazy" src="${img(d.photo, {w: 224, h: 224, crop: true})}" alt="${esc(d.name)}" style="width:112px;height:112px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 10px 22px rgba(201,162,39,.3)">`
       : `<svg class="avatar" viewBox="0 0 96 96">
           <defs><linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3DE9B"/><stop offset="1" stop-color="#C9A227"/></linearGradient></defs>
           <circle cx="48" cy="48" r="46" fill="url(#dg${i})"/>
@@ -982,7 +991,8 @@ function applySettings(s) {
   txt('#heroT1', s.heroTitle1); txt('#heroT2', s.heroTitle2); txt('#heroSub', s.heroSub);
   txt('#aboutTitle', s.aboutTitle); txt('#aboutP1', s.aboutText1); txt('#aboutP2', s.aboutText2);
   txt('#aboutYears', s.aboutYears); txt('#aboutYearsLabel', s.aboutYearsLabel);
-  setImg('hero', s.heroImage); setImg('about', s.aboutImage);
+  setImg('hero', s.heroImage, {w: 900, h: 1200, crop: true});
+  setImg('about', s.aboutImage, {w: 900});
   renderStats(s.stats);
   setH2('srvTitle', s.servicesTitle, s.servicesTitleHi); txt('#srvLead', s.servicesLead);
   setH2('caseTitle', s.casesTitle, s.casesTitleHi);     txt('#caseLead', s.casesLead);
@@ -1004,17 +1014,26 @@ function applySettings(s) {
 
 /* ═══════════ 5) الجلب من Sanity ═══════════ */
 async function loadCMS() {
-  const {projectId, dataset} = CONFIG.sanity;
-  if (!projectId || projectId.includes('ضع')) return;   // غير مفعّل → يبقى المحتوى الافتراضي
+  const {projectId, dataset, apiVersion, useCdn} = CONFIG.sanity;
+  if (!projectId || projectId.includes('ضع')) {
+    console.info('ℹ️ Sanity غير مفعّل — ضع projectId في CONFIG لتفعيل لوحة التحكم.');
+    return;                                  // يبقى المحتوى الافتراضي المكتوب في الصفحة
+  }
   const q = `{"settings": *[_type == "siteSettings"][0],
     "services": *[_type == "service"] | order(order asc),
     "cases": *[_type == "caseItem"] | order(order asc),
     "gallery": *[_type == "galleryItem"] | order(order asc),
     "doctors": *[_type == "doctor"] | order(order asc)}`;
-  const url = `https://${projectId}.api.sanity.io/v1/query/${dataset}?query=${encodeURIComponent(q)}`;
+  const host = useCdn ? 'apicdn.sanity.io' : 'api.sanity.io';
+  const url = `https://${projectId}.${host}/v${apiVersion}/data/query/${dataset}?query=${encodeURIComponent(q)}`;
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res.ok) {
+      const hint = res.status === 404 ? ' (تحقق من projectId واسم الـ dataset)'
+                 : res.status === 403 ? ' (اجعل الـ dataset عاماً Public من sanity.io/manage)'
+                 : '';
+      throw new Error('HTTP ' + res.status + hint);
+    }
     const {result} = await res.json();
     if (!result) return;
     applySettings(result.settings);
@@ -1022,6 +1041,7 @@ async function loadCMS() {
     renderCases(result.cases || []);
     renderGallery(result.gallery || []);
     renderDoctors(result.doctors || []);
+    document.documentElement.dataset.cms = 'sanity';
   } catch (err) {
     console.warn('تعذّر جلب المحتوى من Sanity — يُعرض المحتوى الافتراضي:', err.message);
   }
