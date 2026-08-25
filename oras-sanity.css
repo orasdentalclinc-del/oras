@@ -1,0 +1,155 @@
+/*!
+ * تنسيقات مكملة للعناصر القادمة من لوحة التحكم
+ * تحافظ على هوية أوراس الذهبية والأسود
+ */
+
+:root {
+  --oras-gold: #d59b00;
+  --oras-ink: #111111;
+  --oras-paper: #faf8f3;
+  --oras-line: #e9d9aa;
+}
+
+/* ── صور الخدمات ── */
+.service-media {
+  overflow: hidden;
+  border-radius: 18px;
+  margin-bottom: 18px;
+  border: 1px solid var(--oras-line);
+  aspect-ratio: 16 / 10;
+}
+.service-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.service-price {
+  color: var(--oras-gold);
+  font-weight: 700;
+}
+
+/* ── حالات قبل وبعد ── */
+.case-visual.case-photos {
+  background: #16130d;
+  padding: 18px;
+  position: relative;
+}
+.case-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.case-side {
+  margin: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(233, 217, 170, 0.35);
+  background: #0f0d09;
+}
+.case-side img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+.case-side figcaption {
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  color: var(--oras-line);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+/* ── التقييمات المنشورة ── */
+.reviews-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-inline-end: 6px;
+}
+.review-card {
+  background: #fff;
+  border: 1px solid var(--oras-line);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 6px 18px rgba(17, 17, 17, 0.05);
+}
+.review-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.review-card-head strong {
+  color: var(--oras-ink);
+}
+.review-stars {
+  color: var(--oras-gold);
+  letter-spacing: 0.12em;
+  font-size: 1.05rem;
+  direction: ltr;
+}
+.review-card p {
+  margin: 0 0 8px;
+  line-height: 1.85;
+  color: #3b352a;
+}
+.review-meta {
+  font-size: 0.82rem;
+  color: #8b8272;
+}
+
+/* ── معرض الصور ── */
+.gallery-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.gallery-tag {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: var(--oras-gold);
+  margin-bottom: 4px;
+}
+
+/* ── الأنشطة ── */
+.activity-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.activity-body {
+  padding: 18px;
+}
+.activity-kind {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: var(--oras-gold);
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.activity-meta {
+  display: block;
+  font-size: 0.85rem;
+  color: #8b8272;
+  margin: 8px 0 12px;
+}
+
+/* ── حالة التحميل ── */
+html[data-oras-cms='loading'] .services-grid,
+html[data-oras-cms='loading'] .reviews-list {
+  opacity: 0.65;
+  transition: opacity 0.25s ease;
+}
+
+@media (max-width: 720px) {
+  .case-pair {
+    grid-template-columns: 1fr;
+  }
+}
