@@ -33,11 +33,9 @@ oras/
 cd studio
 npm install
 npx sanity login          # سجّل دخولك (Google / GitHub / بريد)
-npx sanity init --create-project "Oras Dental" --dataset production
 ```
 
-انسخ **Project ID** الذي يظهر (مثل `k3f8s2m1`). تجده أيضاً في
-<https://sanity.io/manage>.
+> المشروع منشأ بالفعل — معرفه **`j4rqm0i8`**. لا حاجة لـ `sanity init`.
 
 ### 2) ربط اللوحة بالمشروع
 
@@ -45,21 +43,23 @@ npx sanity init --create-project "Oras Dental" --dataset production
 cp .env.example .env
 ```
 
-ثم افتح `.env` وضع المعرف:
+الملف يجب أن يحتوي على:
 
 ```
-SANITY_STUDIO_PROJECT_ID=k3f8s2m1
+SANITY_STUDIO_PROJECT_ID=j4rqm0i8
 SANITY_STUDIO_DATASET=production
 ```
 
-### 3) ⚠️ ربط الموقع بالمشروع (الخطوة الأهم)
+> `.env` غير مرفوع على Git (لأسباب أمنية) — أنشئه بعد كل استنساخ للمستودع.
 
-افتح `index.html` وابحث عن `CONFIG` (قرابة السطر 826) وضع نفس المعرف:
+### 3) ✅ ربط الموقع بالمشروع — تم مسبقاً
+
+المعرف `j4rqm0i8` مضبوط بالفعل في `index.html` (السطر 829) وفي `studio/.env`:
 
 ```js
 const CONFIG = {
   sanity: {
-    projectId: 'k3f8s2m1',   // ← ضع المعرف هنا
+    projectId: 'j4rqm0i8',
     dataset: 'production',
     apiVersion: '2024-01-01',
     useCdn: true,
@@ -67,8 +67,6 @@ const CONFIG = {
   ...
 };
 ```
-
-> بدون هذه الخطوة ستعمل اللوحة لكن الموقع لن يقرأ منها.
 
 ### 4) جعل البيانات قابلة للقراءة علناً
 
@@ -159,5 +157,5 @@ npm run deploy
 | `HTTP 404` | `projectId` أو اسم الـ dataset خاطئ |
 | `HTTP 403` | الـ dataset ليس Public (الخطوة 4) |
 | خطأ CORS | أضف نطاقك في CORS origins (الخطوة 5) |
-| `ℹ️ Sanity غير مفعّل` | لم تضع `projectId` في `index.html` (الخطوة 3) |
+| `ℹ️ Sanity غير مفعّل` | `projectId` فارغ في `index.html` |
 | المحتوى الافتراضي يظهر | لم تضغط **Publish**، أو الكاش لم ينتهِ بعد |
