@@ -8,7 +8,8 @@
     "start": "sanity start",
     "build": "sanity build",
     "deploy": "sanity deploy",
-    "seed": "node scripts/seed.mjs"
+    "seed": "node scripts/seed.mjs",
+    "check": "node scripts/check.mjs"
   },
   "dependencies": {
     "@sanity/icons": "^3.5.7",
