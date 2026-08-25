@@ -3,8 +3,9 @@ import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
 
-// معرف المشروع يُقرأ من ملف .env (SANITY_STUDIO_PROJECT_ID)
-const projectId = process.env.SANITY_STUDIO_PROJECT_ID
+// المعرف مكتوب مباشرة ليعمل دائماً حتى بدون ملف .env،
+// مع إمكانية تجاوزه عبر متغيرات البيئة عند الحاجة.
+const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'j4rqm0i8'
 const dataset = process.env.SANITY_STUDIO_DATASET || 'production'
 
 export default defineConfig({
