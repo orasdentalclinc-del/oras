@@ -15,7 +15,7 @@
    * =======================================================*/
   var CONFIG = Object.assign(
     {
-      projectId: 'YOUR_PROJECT_ID', // معرف المشروع من لوحة Sanity
+      projectId: 'upxb9w10', // معرف المشروع من لوحة Sanity
       dataset: 'production',
       apiVersion: '2026-08-01',
       // رابط الوسيط المسؤول عن استقبال النماذج (اتركه فارغًا لتبقى النماذج كما هي)
