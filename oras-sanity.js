@@ -8,7 +8,7 @@
 
   var CONFIG = Object.assign(
     {
-      projectId: '',
+      projectId: 'upxb9w10',
       dataset: 'production',
       apiVersion: '2024-01-01',
       refreshOnFocus: true,
