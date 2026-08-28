@@ -1,54 +1,40 @@
 import {CogIcon} from '@sanity/icons'
 
+/**
+ * إعدادات الموقع — مستند واحد فقط (singleton).
+ * أسماء الحقول هنا تطابق تماماً ما يقرؤه الموقع في oras-sanity.js —
+ * لا تغيّر أسماء الحقول إلا مع تعديل الملف المقابل في الموقع.
+ */
 export default {
   name: 'siteSettings',
   title: 'إعدادات الموقع',
   type: 'document',
   icon: CogIcon,
   groups: [
-    {name: 'brand', title: 'الهوية'},
+    {name: 'brand', title: 'الهوية', default: true},
     {name: 'hero', title: 'الواجهة'},
     {name: 'about', title: 'من نحن'},
-    {name: 'titles', title: 'عناوين الأقسام'},
     {name: 'contact', title: 'الاتصال والموقع'},
+    {name: 'survey', title: 'استبيان الزوار'},
+    {name: 'headings', title: 'عناوين الأقسام'},
+    {name: 'seo', title: 'SEO'},
   ],
   fields: [
     // ===== الهوية =====
+    {name: 'clinicName', title: 'اسم العيادة', type: 'string', group: 'brand',
+      description: 'يظهر في التذييل وفي رسائل واتساب'},
+    {name: 'tagline', title: 'الوصف المختصر (الشارة العلوية)', type: 'string', group: 'brand'},
     {
-      name: 'clinicFullName',
-      title: 'الاسم الكامل للعيادة',
-      type: 'string',
-      group: 'brand',
-      initialValue: 'عيادة أوراس لطب الأسنان',
-      description: 'يظهر في عنوان الصفحة وحقوق النشر ورسائل واتساب',
-    },
-    {
-      name: 'clinicShortName',
-      title: 'الاسم المختصر (في الشعار)',
-      type: 'string',
-      group: 'brand',
-      initialValue: 'أوراس',
-    },
-    {
-      name: 'clinicSubName',
-      title: 'السطر الصغير تحت الشعار',
-      type: 'string',
-      group: 'brand',
-      initialValue: 'لطب الأسنان',
-    },
-    {
-      name: 'footDesc',
-      title: 'نبذة في التذييل',
-      type: 'text',
-      rows: 3,
+      name: 'logo',
+      title: 'الشعار',
+      type: 'image',
+      options: {hotspot: true},
       group: 'brand',
     },
 
     // ===== الواجهة =====
-    {name: 'heroBadge', title: 'الشارة العلوية', type: 'string', group: 'hero'},
-    {name: 'heroTitle1', title: 'العنوان الرئيسي — السطر الأول', type: 'string', group: 'hero'},
-    {name: 'heroTitle2', title: 'العنوان الرئيسي — السطر المميّز (ذهبي)', type: 'string', group: 'hero'},
-    {name: 'heroSub', title: 'النص التعريفي', type: 'text', rows: 3, group: 'hero'},
+    {name: 'heroTitle', title: 'العنوان الرئيسي', type: 'string', group: 'hero'},
+    {name: 'heroSubtitle', title: 'النص التعريفي', type: 'text', rows: 3, group: 'hero'},
     {
       name: 'heroImage',
       title: 'صورة الواجهة',
@@ -56,6 +42,14 @@ export default {
       options: {hotspot: true},
       group: 'hero',
       description: 'يُفضّل صورة عمودية عالية الجودة (مثلاً 900×1200)',
+    },
+    {
+      name: 'heroHighlights',
+      title: 'نقاط الثقة (أعلى الصفحة)',
+      description: 'مثال: تعقيم بمعايير عالمية — أحدث التقنيات الرقمية…',
+      type: 'array',
+      of: [{type: 'string'}],
+      group: 'hero',
     },
     {
       name: 'stats',
@@ -77,34 +71,29 @@ export default {
 
     // ===== من نحن =====
     {name: 'aboutTitle', title: 'عنوان قسم من نحن', type: 'string', group: 'about'},
-    {name: 'aboutText1', title: 'الفقرة الأولى', type: 'text', rows: 4, group: 'about'},
-    {name: 'aboutText2', title: 'الفقرة الثانية', type: 'text', rows: 4, group: 'about'},
-    {name: 'aboutYears', title: 'رقم سنوات الخبرة', type: 'string', group: 'about'},
-    {name: 'aboutYearsLabel', title: 'وصف سنوات الخبرة', type: 'string', group: 'about'},
-    {name: 'aboutImage', title: 'صورة قسم من نحن', type: 'image', options: {hotspot: true}, group: 'about'},
-
-    // ===== عناوين الأقسام =====
-    {name: 'servicesTitle', title: 'عنوان الخدمات', type: 'string', group: 'titles'},
-    {name: 'servicesTitleHi', title: 'عنوان الخدمات — الجزء الذهبي', type: 'string', group: 'titles'},
-    {name: 'servicesLead', title: 'وصف الخدمات', type: 'text', rows: 2, group: 'titles'},
-
-    {name: 'casesTitle', title: 'عنوان الحالات', type: 'string', group: 'titles'},
-    {name: 'casesTitleHi', title: 'عنوان الحالات — الجزء الذهبي', type: 'string', group: 'titles'},
-    {name: 'casesLead', title: 'وصف الحالات', type: 'text', rows: 2, group: 'titles'},
-
-    {name: 'galleryTitle', title: 'عنوان المعرض', type: 'string', group: 'titles'},
-    {name: 'galleryTitleHi', title: 'عنوان المعرض — الجزء الذهبي', type: 'string', group: 'titles'},
-    {name: 'galleryLead', title: 'وصف المعرض', type: 'text', rows: 2, group: 'titles'},
-
-    {name: 'doctorsTitle', title: 'عنوان الأطباء', type: 'string', group: 'titles'},
-    {name: 'doctorsTitleHi', title: 'عنوان الأطباء — الجزء الذهبي', type: 'string', group: 'titles'},
-    {name: 'doctorsLead', title: 'وصف الأطباء', type: 'text', rows: 2, group: 'titles'},
-
-    {name: 'bookingTitle', title: 'عنوان الحجز', type: 'string', group: 'titles'},
-    {name: 'bookingTitleHi', title: 'عنوان الحجز — الجزء الذهبي', type: 'string', group: 'titles'},
-    {name: 'bookingLead', title: 'وصف الحجز', type: 'text', rows: 2, group: 'titles'},
+    {
+      name: 'aboutBody',
+      title: 'نص قسم من نحن',
+      type: 'array',
+      of: [{type: 'block'}],
+      group: 'about',
+    },
+    {
+      name: 'aboutImage',
+      title: 'صورة قسم من نحن',
+      type: 'image',
+      options: {hotspot: true},
+      group: 'about',
+    },
 
     // ===== الاتصال =====
+    {
+      name: 'phone',
+      title: 'رقم الهاتف (للعرض والاتصال المباشر)',
+      type: 'string',
+      group: 'contact',
+      description: 'كما تريد ظهوره. مثال: ‎+249 91 234 5678 — يُستخدم في كل أزرار الاتصال tel:',
+    },
     {
       name: 'whatsapp',
       title: 'رقم واتساب',
@@ -114,32 +103,123 @@ export default {
       validation: (R) =>
         R.regex(/^[0-9]{8,15}$/, {name: 'أرقام فقط'}).warning('اكتب أرقاماً فقط بدون + أو مسافات'),
     },
-    {
-      name: 'phone',
-      title: 'رقم الهاتف (للعرض)',
-      type: 'string',
-      group: 'contact',
-      description: 'كما تريد ظهوره على الموقع. مثال: ‎+249 91 234 5678',
-    },
     {name: 'email', title: 'البريد الإلكتروني', type: 'string', group: 'contact'},
-
-    {name: 'addressTitle', title: 'العنوان — السطر الأول', type: 'string', group: 'contact'},
-    {name: 'addressSub', title: 'العنوان — السطر الثاني', type: 'string', group: 'contact'},
-    {name: 'addressFull', title: 'العنوان الكامل (التذييل)', type: 'string', group: 'contact'},
     {
-      name: 'mapQuery',
-      title: 'موقع الخريطة',
-      type: 'string',
+      name: 'addressLine',
+      title: 'العنوان',
+      type: 'text',
+      rows: 2,
       group: 'contact',
-      description: 'اسم المكان أو الإحداثيات. مثال: 15.5527,32.5599 أو: عيادة أوراس شارع الستين الخرطوم',
+      description: 'السطر الأول ثم (اختيارياً) سطر ثانٍ للتفاصيل',
     },
-    {name: 'mapNote', title: 'ملاحظة أسفل الخريطة', type: 'string', group: 'contact'},
+    {
+      name: 'mapEmbedUrl',
+      title: 'رابط تضمين الخريطة (Embed)',
+      type: 'url',
+      group: 'contact',
+      description: 'رابط google.com/maps بتنسيق output=embed — إن تُرك فارعاً يُبنى من العنوان',
+    },
+    {
+      name: 'mapsUrl',
+      title: 'رابط الاتجاهات',
+      type: 'url',
+      group: 'contact',
+      description: 'يُفتح عند الضغط على «فتح الاتجاهات» — إن تُرك فارعاً يُبنى من العنوان',
+    },
+    {
+      name: 'openingHours',
+      title: 'أوقات العمل',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          name: 'hoursRow',
+          fields: [
+            {name: 'days', title: 'الأيام', type: 'string'},
+            {name: 'hours', title: 'التوقيت', type: 'string'},
+          ],
+          preview: {select: {title: 'days', subtitle: 'hours'}},
+        },
+      ],
+      group: 'contact',
+    },
+    {
+      name: 'socialLinks',
+      title: 'روابط التواصل الاجتماعي (التذييل)',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          name: 'socialLink',
+          fields: [
+            {name: 'label', title: 'المنصة', type: 'string', description: 'مثال: فيسبوك'},
+            {name: 'url', title: 'الرابط', type: 'url'},
+          ],
+          preview: {select: {title: 'label', subtitle: 'url'}},
+        },
+      ],
+      group: 'contact',
+    },
 
-    {name: 'hoursWeekLabel', title: 'أيام الدوام — التسمية', type: 'string', group: 'contact'},
-    {name: 'hoursWeek', title: 'أيام الدوام — الوقت', type: 'string', group: 'contact'},
-    {name: 'hoursFriLabel', title: 'يوم العطلة — التسمية', type: 'string', group: 'contact'},
-    {name: 'hoursFri', title: 'يوم العطلة — الوقت', type: 'string', group: 'contact'},
-    {name: 'footHours', title: 'الدوام في التذييل', type: 'string', group: 'contact'},
+    // ===== استبيان الزوار (5 أسئلة) =====
+    {
+      name: 'surveyQuestions',
+      title: 'أسئلة استبيان التقييم (5 أسئلة)',
+      description:
+        'تظهر هذه الأسئلة داخل نافذة «أضف تقييمك» في الموقع. اكتب حتى 5 أسئلة — وإن تُركت فارغة تُستخدم الأسئلة الافتراضية.',
+      type: 'array',
+      of: [{type: 'string'}],
+      validation: (R) => R.max(5).warning('الاستبيان مصمم لـ 5 أسئلة كحد أقصى'),
+      initialValue: [
+        'ما مدى رضاك عن نظافة العيادة وتعقيم الأدوات؟',
+        'كيف قيّم تعامل الطبيب وشرحه لحالتك؟',
+        'ما مدى رضاك عن سرعة إنجاز الإجراء ودقته؟',
+        'كيف وجدت سهولة الحجز والتنسيق للمواعيد؟',
+        'ما مدى احتمالية ترشيح العيادة لأصدقائك؟',
+      ],
+      group: 'survey',
+    },
+
+    // ===== عناوين الأقسام =====
+    {
+      name: 'sectionHeadings',
+      title: 'عناوين ووصف الأقسام',
+      type: 'object',
+      group: 'headings',
+      fields: [
+        {name: 'servicesTitle', title: 'الخدمات — العنوان', type: 'string'},
+        {name: 'servicesIntro', title: 'الخدمات — الوصف', type: 'text', rows: 2},
+        {name: 'casesTitle', title: 'الحالات — العنوان', type: 'string'},
+        {name: 'casesIntro', title: 'الحالات — الوصف', type: 'text', rows: 2},
+        {
+          name: 'galleryTitle',
+          title: 'نشاط العيادة — العنوان',
+          type: 'string',
+          description: 'هذا القسم كان يُسمى سابقاً «معرض العيادة»',
+        },
+        {name: 'galleryIntro', title: 'نشاط العيادة — الوصف', type: 'text', rows: 2},
+        {name: 'reviewsTitle', title: 'آراء المرضى — العنوان', type: 'string'},
+        {name: 'reviewsIntro', title: 'آراء المرضى — الوصف', type: 'text', rows: 2},
+        {name: 'partnersTitle', title: 'الشراكات — العنوان', type: 'string'},
+        {name: 'partnersIntro', title: 'الشراكات — الوصف', type: 'text', rows: 2},
+        {name: 'doctorsTitle', title: 'الأطباء — العنوان', type: 'string'},
+        {name: 'doctorsIntro', title: 'الأطباء — الوصف', type: 'text', rows: 2},
+        {name: 'appointmentTitle', title: 'الحجز — العنوان', type: 'string'},
+        {name: 'appointmentIntro', title: 'الحجز — الوصف', type: 'text', rows: 2},
+      ],
+    },
+
+    // ===== SEO =====
+    {
+      name: 'seo',
+      title: 'إعدادات محركات البحث',
+      type: 'object',
+      group: 'seo',
+      fields: [
+        {name: 'metaTitle', title: 'عنوان الصفحة (Title)', type: 'string'},
+        {name: 'metaDescription', title: 'الوصف (Description)', type: 'text', rows: 2},
+      ],
+    },
   ],
   preview: {
     prepare: () => ({title: 'إعدادات الموقع'}),

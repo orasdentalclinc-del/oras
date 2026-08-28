@@ -6,7 +6,7 @@ import {defineCliConfig} from 'sanity/cli'
 // المعرف ليس سرياً — يظهر أصلاً في كود الموقع وفي روابط الصور.
 export default defineCliConfig({
   api: {
-    projectId: 'j4rqm0i8',
+    projectId: 'upxb9w10',
     dataset: 'production',
   },
 

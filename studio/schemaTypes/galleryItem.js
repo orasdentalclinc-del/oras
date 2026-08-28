@@ -1,7 +1,8 @@
 export default {
   name: 'galleryItem',
-  title: 'معرض الصور',
+  title: 'نشاط العيادة',
   type: 'document',
+  description: 'صور من داخل العيادة — تظهر في قسم «نشاط العيادة» (المعروف سابقاً بمعرض العيادة)',
   fields: [
     {
       name: 'image',
@@ -11,6 +12,12 @@ export default {
       validation: (R) => R.required(),
     },
     {name: 'caption', title: 'التعليق', type: 'string'},
+    {
+      name: 'isActive',
+      title: 'مفعّلة (تظهر في الموقع)',
+      type: 'boolean',
+      initialValue: true,
+    },
     {name: 'order', title: 'الترتيب', type: 'number', initialValue: 0},
   ],
   orderings: [{title: 'الترتيب', name: 'orderAsc', by: [{field: 'order', direction: 'asc'}]}],

@@ -1,5 +1,5 @@
 export default {
-  name: 'caseItem',
+  name: 'caseStudy',
   title: 'الحالات (قبل / بعد)',
   type: 'document',
   fields: [
@@ -26,6 +26,18 @@ export default {
       of: [{type: 'string'}],
       options: {layout: 'tags'},
       description: 'مثال: جلسة واحدة — بدون ألم — نتيجة فورية',
+    },
+    {
+      name: 'service',
+      title: 'الخدمة المرتبطة',
+      type: 'reference',
+      to: [{type: 'service'}],
+    },
+    {
+      name: 'isPublished',
+      title: 'منشورة (تظهر في الموقع)',
+      type: 'boolean',
+      initialValue: true,
     },
     {name: 'order', title: 'الترتيب', type: 'number', initialValue: 0},
   ],

@@ -4,8 +4,8 @@ import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
 
 // المعرف مكتوب مباشرة ليعمل دائماً حتى بدون ملف .env،
-// مع إمكانية تجاوزه عبر متغيرات البيئة عند الحاجة.
-const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'j4rqm0i8'
+// وهو نفس المعرف المضبوط في index.html — لا تغيّره إلا في المكانين معاً.
+const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'upxb9w10'
 const dataset = process.env.SANITY_STUDIO_DATASET || 'production'
 
 export default defineConfig({
@@ -33,9 +33,12 @@ export default defineConfig({
               ),
             S.divider(),
             S.documentTypeListItem('service').title('🦷 الخدمات'),
-            S.documentTypeListItem('caseItem').title('✨ الحالات (قبل / بعد)'),
-            S.documentTypeListItem('galleryItem').title('🖼️ معرض الصور'),
+            S.documentTypeListItem('caseStudy').title('✨ الحالات (قبل / بعد)'),
+            S.documentTypeListItem('galleryItem').title('🖼️ نشاط العيادة'),
             S.documentTypeListItem('doctor').title('👩‍⚕️ الأطباء'),
+            S.divider(),
+            S.documentTypeListItem('review').title('⭐ آراء المرضى (التقييمات)'),
+            S.documentTypeListItem('partner').title('🤝 الشراكات'),
           ]),
     }),
     visionTool({defaultApiVersion: '2024-01-01'}),

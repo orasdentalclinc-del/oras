@@ -1,14 +1,4 @@
-export const SERVICE_ICONS = [
-  {title: '🦷 تبييض', value: 'whitening'},
-  {title: '😬 تقويم', value: 'braces'},
-  {title: '🔩 زراعة', value: 'implant'},
-  {title: '👑 تركيبات / تيجان', value: 'crown'},
-  {title: '🩺 علاج جذور', value: 'root'},
-  {title: '✨ تنظيف', value: 'cleaning'},
-  {title: '🧱 حشوات', value: 'filling'},
-  {title: '🧒 أسنان الأطفال', value: 'kids'},
-  {title: '🦷 عام (افتراضي)', value: 'tooth'},
-]
+import {SERVICE_ICONS} from './serviceIcons'
 
 export default {
   name: 'service',
@@ -16,7 +6,7 @@ export default {
   type: 'document',
   fields: [
     {name: 'title', title: 'اسم الخدمة', type: 'string', validation: (R) => R.required()},
-    {name: 'description', title: 'الوصف', type: 'text', rows: 3},
+    {name: 'summary', title: 'الوصف المختصر', type: 'text', rows: 3},
     {
       name: 'icon',
       title: 'الأيقونة',
@@ -24,6 +14,35 @@ export default {
       options: {list: SERVICE_ICONS, layout: 'dropdown'},
       initialValue: 'tooth',
       description: 'الأيقونات مرسومة داخل الموقع — اختر الأقرب للخدمة',
+    },
+    {
+      name: 'isActive',
+      title: 'مفعّلة (تظهر في الموقع)',
+      type: 'boolean',
+      initialValue: true,
+    },
+    {
+      name: 'showInBookingForm',
+      title: 'تظهر في قائمة نموذج الحجز',
+      type: 'boolean',
+      initialValue: true,
+    },
+    {name: 'price', title: 'السعر', type: 'string', description: 'مثال: 150,000 SDG'},
+    {name: 'priceNote', title: 'ملاحظة السعر', type: 'string', description: 'مثال: يبدأ من… حسب الحالة'},
+    {name: 'duration', title: 'مدة الجلسة', type: 'string', description: 'مثال: 45 دقيقة'},
+    {name: 'sessionsCount', title: 'عدد الجلسات', type: 'string', description: 'مثال: جلسة إلى جلستين'},
+    {
+      name: 'details',
+      title: 'التفاصيل',
+      type: 'array',
+      of: [{type: 'block'}],
+      description: 'تظهر في نافذة تفاصيل الخدمة عند الضغط على البطاقة',
+    },
+    {
+      name: 'includes',
+      title: 'ماذا تشمل الخدمة',
+      type: 'array',
+      of: [{type: 'string'}],
     },
     {
       name: 'order',
@@ -35,7 +54,7 @@ export default {
   ],
   orderings: [{title: 'الترتيب', name: 'orderAsc', by: [{field: 'order', direction: 'asc'}]}],
   preview: {
-    select: {title: 'title', subtitle: 'description', order: 'order'},
+    select: {title: 'title', subtitle: 'summary', order: 'order'},
     prepare: ({title, subtitle, order}) => ({
       title: `${order ?? '—'}. ${title}`,
       subtitle,

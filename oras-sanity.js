@@ -146,20 +146,27 @@
     'clinicName, tagline, logo, heroTitle, heroSubtitle, heroImage, heroHighlights,',
     'aboutTitle, aboutBody, aboutImage, stats,',
     'phone, whatsapp, email, addressLine, mapsUrl, mapEmbedUrl, openingHours, socialLinks,',
-    'sectionHeadings, seo',
+    'sectionHeadings, seo, surveyQuestions',
     '},',
     '"services": *[_type == "service" && isActive != false]|order(order asc){',
     '_id, title, summary, icon, showInBookingForm,',
     'price, priceNote, duration, sessionsCount, details, includes',
     '},',
     '"cases": *[_type == "caseStudy" && isPublished == true]|order(order asc){',
-    '_id, title, description, sessions, beforeImage, afterImage, "serviceTitle": service->title',
+    '_id, title, description, sessions, chips, beforeImage, afterImage, "serviceTitle": service->title',
     '},',
     '"gallery": *[_type == "galleryItem" && isActive != false]|order(order asc){',
     '_id, image, caption',
     '},',
     '"doctors": *[_type == "doctor"]|order(order asc){',
     '_id, name, role, bio, badge, photo',
+    '},',
+    '"reviews": *[_type == "review" && status == "approved"]',
+    '|order(featured desc, order asc, _createdAt desc)[0...24]{',
+    '_id, name, rating, comment, service, featured',
+    '},',
+    '"partners": *[_type == "partner" && isActive != false]|order(order asc){',
+    '_id, name, description, logo, url',
     '}',
     '}',
   ].join(' ')
@@ -276,6 +283,13 @@
       ;['#heroPhone', '#sidePhone', '#footPhone'].forEach(function (sel) {
         setText(sel, s.phone)
       })
+      /* أزرار الاتصال المباشر — بروتوكول tel: */
+      var telDigits = digits(s.phone)
+      if (telDigits) {
+        $$('a[data-tel]').forEach(function (a) {
+          a.setAttribute('href', 'tel:+' + telDigits)
+        })
+      }
     }
     setText('#waNumber', wa ? '+' + wa : s.phone)
     if (wa) {
@@ -392,8 +406,21 @@
     setText('#caseLead', h.casesIntro)
     setText('#galTitle', h.galleryTitle)
     setText('#galLead', h.galleryIntro)
+    setText('#revTitle', h.reviewsTitle)
+    setText('#revLead', h.reviewsIntro)
+    setText('#ptnTitle', h.partnersTitle)
+    setText('#ptnLead', h.partnersIntro)
     setText('#bookTitle', h.appointmentTitle)
     setText('#bookLead', h.appointmentIntro)
+
+    /* أسئلة الاستبيان — تُدار من لوحة التحكم */
+    if (
+      Array.isArray(s.surveyQuestions) &&
+      s.surveyQuestions.length &&
+      typeof window.orasSetSurveyQuestions === 'function'
+    ) {
+      window.orasSetSurveyQuestions(s.surveyQuestions)
+    }
   }
 
   /* ---------- نافذة تفاصيل الخدمة ---------- */
@@ -615,6 +642,11 @@
       var meta = make('div', 'case-meta')
       if (c.sessions) meta.appendChild(make('span', 'chip', '⏱ ' + c.sessions))
       if (c.serviceTitle) meta.appendChild(make('span', 'chip', c.serviceTitle))
+      if (Array.isArray(c.chips)) {
+        c.chips.forEach(function (ch) {
+          if (ch) meta.appendChild(make('span', 'chip', String(ch)))
+        })
+      }
       if (meta.childNodes.length) body.appendChild(meta)
       art.appendChild(body)
       grid.appendChild(art)
@@ -679,13 +711,87 @@
     })
   }
 
+  /* ---------- آراء المرضى (المعتمدة فقط) ---------- */
+  function starsText(rating) {
+    var r = Math.max(1, Math.min(5, Math.round(Number(rating) || 0)))
+    return '★★★★★'.slice(0, r) + '☆☆☆☆☆'.slice(0, 5 - r)
+  }
+  function renderReviews(list) {
+    var grid = $('#revGrid')
+    if (!grid || !list || !list.length) return
+    clear(grid)
+    var sum = 0
+    list.forEach(function (rv) {
+      var rating = Math.max(1, Math.min(5, Math.round(Number(rv.rating) || 0)))
+      sum += rating
+      var art = make('article', 'rev reveal in')
+      var top = make('div', 'rev-top')
+      var name = String(rv.name || 'مريض')
+      top.appendChild(make('span', 'rev-avatar', name.charAt(0)))
+      var who = make('span', 'rev-who')
+      who.appendChild(make('b', null, name))
+      who.appendChild(
+        make('small', null, rv.service || (rv.featured ? 'تقييم موثّق' : 'زائر للموقع'))
+      )
+      top.appendChild(who)
+      var st = make('span', 'stars', starsText(rating))
+      st.setAttribute('aria-label', rating + ' من 5')
+      top.appendChild(st)
+      art.appendChild(top)
+      if (rv.comment) art.appendChild(make('p', null, rv.comment))
+      grid.appendChild(art)
+    })
+    var avg = sum / list.length
+    setText('#revAvg', (Math.round(avg * 10) / 10).toFixed(1))
+    setText('#revAvgStars', starsText(avg))
+    setText(
+      '#revCountLabel',
+      'بناءً على ' + list.length + (list.length === 1 ? ' تقييم' : ' تقييمات') + ' منشورة'
+    )
+  }
+
+  /* ---------- الشراكات (يظهر القسم عند توفر شركاء) ---------- */
+  function renderPartners(list) {
+    var section = $('#partners')
+    var grid = $('#ptnGrid')
+    if (!section || !grid || !list || !list.length) return
+    clear(grid)
+    list.forEach(function (p) {
+      var card = make('div', 'ptn reveal in')
+      var logoBox = make('div', 'ptn-logo')
+      var u = imageUrl(p.logo, 220, 220, false)
+      if (u) {
+        logoBox.appendChild(imgEl(p.logo, p.name || 'شريك', 220, 220, false))
+      } else {
+        logoBox.appendChild(make('b', null, String(p.name || 'ش').charAt(0)))
+      }
+      card.appendChild(logoBox)
+      card.appendChild(make('h3', null, p.name))
+      if (p.description) card.appendChild(make('p', null, p.description))
+      var link = safeUrl(p.url)
+      if (link) {
+        var a = make('a', 'ptn-link', 'زيارة الموقع ↗')
+        a.setAttribute('href', link)
+        a.setAttribute('target', '_blank')
+        a.setAttribute('rel', 'noopener')
+        card.appendChild(a)
+      }
+      grid.appendChild(card)
+    })
+    grid.removeAttribute('hidden')
+    section.removeAttribute('hidden')
+    document.documentElement.setAttribute('data-has-partners', '1')
+  }
+
   /* ---------- التشغيل ---------- */
   function apply(data) {
     renderSettings(data.settings)
     renderServices(data.services || [])
     renderCases(data.cases || [])
     renderGallery(data.gallery || [])
+    renderReviews(data.reviews || [])
     renderDoctors(data.doctors || [])
+    renderPartners(data.partners || [])
     document.documentElement.setAttribute('data-oras-cms', 'ready')
   }
 
