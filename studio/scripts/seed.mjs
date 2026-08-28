@@ -1,7 +1,10 @@
 /**
- * تعبئة اللوحة بالمحتوى الافتراضي الموجود حالياً في الموقع.
+ * تهيئة لوحة التحكم بالمحتوى الافتراضي لموقع عيادة أوراس.
  * التشغيل:  npx sanity login   ثم   npm run seed
- * آمن للتكرار: يستخدم createIfNotExists / createOrReplace بمعرفات ثابتة.
+ *
+ * آمن تماماً على المحتوى الموجود:
+ *  • يستخدم setIfMissing — لا يستبدل أي قيمة أدخلتها أنت، يملأ الفراغات فقط.
+ *  • لا ينشئ خدمات/حالات تجريبية لتجنب التكرار.
  */
 import {createClient} from '@sanity/client'
 import {readFileSync} from 'node:fs'
@@ -40,93 +43,64 @@ if (!token) {
 
 const client = createClient({projectId, dataset, apiVersion: '2024-01-01', token, useCdn: false})
 
-const settings = {
-  _id: 'siteSettings',
-  _type: 'siteSettings',
-  clinicFullName: 'عيادة أوراس لطب الأسنان',
-  clinicShortName: 'أوراس',
-  clinicSubName: 'لطب الأسنان',
-  footDesc: 'عيادة متكاملة لطب وتجميل الأسنان في قلب الخرطوم — رعاية دقيقة بأحدث الأجهزة وأيدٍ خبيرة.',
-  heroBadge: 'نستقبل الحالات اليوم',
-  heroTitle1: 'ابتسامتك تستحق',
-  heroTitle2: 'عناية استثنائية',
-  heroSub:
-    'في عيادة أوراس نجمع بين أحدث تقنيات طب الأسنان ولمسة إنسانية دافئة — لتخرج بابتسامة تثق بها.',
-  aboutTitle: 'من نحن',
-  aboutText1:
-    'عيادة أوراس لطب الأسنان في شارع الستين بالخرطوم، نقدم رعاية شاملة للأسنان تجمع بين الدقة العلمية وراحة المريض.',
-  aboutText2:
-    'فريقنا من الأطباء المتخصصين يستخدم أحدث الأجهزة والتعقيم القياسي لضمان تجربة علاجية آمنة ومريحة.',
-  aboutYears: '+12',
-  aboutYearsLabel: 'سنة من الخبرة',
-  stats: [
-    {_key: 's1', value: '+5000', label: 'مريض سعيد'},
-    {_key: 's2', value: '+12', label: 'سنة خبرة'},
-    {_key: 's3', value: '9', label: 'خدمة متخصصة'},
-    {_key: 's4', value: '4.9', label: 'تقييم المرضى'},
-  ],
-  servicesTitle: 'خدماتنا',
-  servicesTitleHi: 'المتكاملة',
-  servicesLead: 'كل ما تحتاجه أسنانك تحت سقف واحد وبأعلى معايير الجودة.',
-  casesTitle: 'حالات',
-  casesTitleHi: 'قبل وبعد',
-  casesLead: 'نتائج حقيقية من عيادتنا — اسحب الفاصل لمشاهدة الفرق.',
-  galleryTitle: 'جولة في',
-  galleryTitleHi: 'العيادة',
-  galleryLead: 'بيئة نظيفة ومريحة مجهزة بأحدث الأجهزة.',
-  doctorsTitle: 'فريقنا',
-  doctorsTitleHi: 'الطبي',
-  doctorsLead: 'أطباء متخصصون يهتمون بأدق التفاصيل.',
-  bookingTitle: 'احجز',
-  bookingTitleHi: 'موعدك',
-  bookingLead: 'املأ النموذج وسنصلك عبر واتساب لتأكيد الموعد.',
-  whatsapp: '249912345678',
+/* يُملأ كل حقل فقط إن كان فارغاً — لا يطغى على محتواك الحالي */
+const defaults = {
+  clinicName: 'عيادة أوراس لطب الأسنان',
+  tagline: 'شارع الستين — الخرطوم',
+  heroTitle: 'ابتسامتك تستحق عناية ذهبية',
+  heroSubtitle:
+    'رعاية متكاملة لأسنانك بأحدث الأجهزة الرقمية، وأطباء استشاريين، وبيئة هادئة نظيفة تشعر فيها بالاطمئنان من أول لحظة.',
+  heroHighlights: ['تعقيم بمعايير عالمية', 'أحدث التقنيات الرقمية', 'حجز سهل خلال دقيقة'],
+  aboutTitle: 'عيادة تشعر فيها بالراحة… قبل أن تجلس على الكرسي',
   phone: '+249 91 234 5678',
+  whatsapp: '249912345678',
   email: 'info@orasdentalclinic.com',
-  addressTitle: 'شارع الستين',
-  addressSub: 'الخرطوم — السودان',
-  addressFull: 'شارع الستين، الخرطوم، السودان',
-  mapQuery: 'شارع الستين الخرطوم',
-  mapNote: 'موقعنا على الخريطة — اضغط للحصول على الاتجاهات',
-  hoursWeekLabel: 'السبت — الخميس',
-  hoursWeek: '9:00 ص — 9:00 م',
-  hoursFriLabel: 'الجمعة',
-  hoursFri: '4:00 م — 9:00 م',
-  footHours: 'السبت — الخميس: 9 ص — 9 م',
+  addressLine: 'شارع الستين\nالخرطوم، السودان',
+  openingHours: [
+    {days: 'السبت — الخميس', hours: '9:00 صباحاً — 9:00 مساءً'},
+    {days: 'الجمعة', hours: 'حالات الطوارئ عبر الهاتف'},
+  ],
+  sectionHeadings: {
+    galleryTitle: 'نشاط العيادة',
+    reviewsTitle: 'تجارب مرضانا أثمن ما نملك',
+    partnersTitle: 'نفخر بشراكات تخدم مرضانا',
+  },
+  surveyQuestions: [
+    'ما مدى رضاك عن نظافة العيادة وتعقيم الأدوات؟',
+    'كيف قيّم تعامل الطبيب وشرحه لحالتك؟',
+    'ما مدى رضاك عن سرعة إنجاز الإجراء ودقته؟',
+    'كيف وجدت سهولة الحجز والتنسيق للمواعيد؟',
+    'ما مدى احتمالية ترشيح العيادة لأصدقائك؟',
+  ],
+  seo: {
+    metaTitle: 'عيادة أوراس لطب الأسنان | شارع الستين — الخرطوم',
+    metaDescription:
+      'عيادة أوراس لطب الأسنان في شارع الستين بالخرطوم — تبييض، تقويم، زراعة، تركيبات وعناية متكاملة بأسنانك.',
+  },
 }
-
-const services = [
-  ['تبييض الأسنان', 'تبييض احترافي بجلسة واحدة بنتائج فورية وآمنة على المينا.', 'whitening'],
-  ['تقويم الأسنان', 'تقويم معدني وشفاف لتصحيح اصطفاف الأسنان وإطباق الفكين.', 'braces'],
-  ['زراعة الأسنان', 'زراعات بمواد عالمية لتعويض الأسنان المفقودة بثبات دائم.', 'implant'],
-  ['التركيبات والتيجان', 'تيجان زيركون وفينير بمظهر طبيعي ومتانة عالية.', 'crown'],
-  ['علاج جذور الأسنان', 'علاج عصب دقيق وغير مؤلم للحفاظ على سنّك الطبيعي.', 'root'],
-  ['تنظيف وتلميع', 'إزالة الجير والتصبغات مع تلميع يعيد لمعان الأسنان.', 'cleaning'],
-  ['الحشوات التجميلية', 'حشوات بلون السن لعلاج التسوس دون التأثير على المظهر.', 'filling'],
-  ['أسنان الأطفال', 'رعاية لطيفة ومحببة للأطفال في بيئة مريحة وآمنة.', 'kids'],
-]
 
 async function run() {
   console.log(`📡 المشروع: ${projectId} / ${dataset}`)
 
-  await client.createOrReplace(settings)
-  console.log('✅ إعدادات الموقع')
-
-  const tx = client.transaction()
-  services.forEach(([title, description, icon], i) => {
-    tx.createIfNotExists({
-      _id: `service-${i + 1}`,
-      _type: 'service',
-      title,
-      description,
-      icon,
-      order: i + 1,
+  await client
+    .patch('siteSettings')
+    .setIfMissing(defaults)
+    .commit({autoGenerateArrayKeys: true})
+    .then(() => console.log('✅ إعدادات الموقع — تم ملء الحقول الفارغة فقط'))
+    .catch((e) => {
+      if (String(e.message).includes('not found') || e.statusCode === 404) {
+        return client
+          .create({_id: 'siteSettings', _type: 'siteSettings', ...defaults}, {autoGenerateArrayKeys: true})
+          .then(() => console.log('✅ إعدادات الموقع — أُنشئت من جديد'))
+      }
+      throw e
     })
-  })
-  await tx.commit()
-  console.log(`✅ ${services.length} خدمات`)
 
-  console.log('\n🎉 تم. افتح اللوحة بـ npm run dev وأضف الصور والحالات والأطباء.')
+  console.log('\n🎉 تم. افتح اللوحة بـ npm run dev ثم:')
+  console.log('   • أضف الصور (الواجهة، من نحن) والخدمات والحالات والأطباء.')
+  console.log('   • أضف الشركاء من قسم «🤝 الشراكات» ليظهر القسم على الموقع.')
+  console.log('   • اعتمد التقييمات الواردة من «⭐ آراء المرضى» لتنشرها.')
+  console.log('   • لا تنسَ الضغط على Publish بعد كل تعديل.')
 }
 
 run().catch((e) => {

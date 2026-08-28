@@ -4,7 +4,7 @@
  * لا يحتاج توكن ولا تسجيل دخول — يفحص ما يراه الموقع بالضبط.
  */
 
-const PROJECT = process.env.SANITY_STUDIO_PROJECT_ID || 'j4rqm0i8'
+const PROJECT = process.env.SANITY_STUDIO_PROJECT_ID || 'upxb9w10'
 const DATASET = process.env.SANITY_STUDIO_DATASET || 'production'
 const API = '2024-01-01'
 
@@ -70,9 +70,13 @@ if (fatal) {
 hdr('3) المحتوى المنشور (ما يراه الموقع فعلياً)')
 const groq = `{"settings": *[_type == "siteSettings"][0],
  "services": *[_type == "service"] | order(order asc),
- "cases": *[_type == "caseItem"] | order(order asc),
+ "cases": *[_type == "caseStudy"] | order(order asc),
  "gallery": *[_type == "galleryItem"] | order(order asc),
  "doctors": *[_type == "doctor"] | order(order asc),
+ "reviews": *[_type == "review"] | order(_createdAt desc),
+ "approvedReviews": count(*[_type == "review" && status == "approved"]),
+ "partners": *[_type == "partner" && isActive != false] | order(order asc),
+ "surveyQ": *[_type == "siteSettings"][0].surveyQuestions,
  "drafts": count(*[_id in path("drafts.**")])}`
 
 const r2 = await fetch(
@@ -84,8 +88,11 @@ const counts = [
   ['إعدادات الموقع', result.settings ? 1 : 0],
   ['الخدمات', result.services?.length || 0],
   ['الحالات', result.cases?.length || 0],
-  ['صور المعرض', result.gallery?.length || 0],
+  ['صور نشاط العيادة', result.gallery?.length || 0],
   ['الأطباء', result.doctors?.length || 0],
+  ['التقييمات (الكل)', result.reviews?.length || 0],
+  ['التقييمات المنشورة', result.approvedReviews || 0],
+  ['الشراكات', result.partners?.length || 0],
 ]
 
 let empty = true
@@ -94,10 +101,26 @@ for (const [name, n] of counts) {
   else no(`${name}: لا يوجد محتوى منشور`)
 }
 
-// ─── 4) المسوّدات غير المنشورة ───
+// ─── 3.5) التقييمات والاستبيان ───
+hdr('4) التقييمات والاستبيان')
+const pending = (result.reviews || []).filter((r) => r.status === 'pending').length
+if (result.reviews?.length) {
+  ok(`التقييمات: ${result.reviews.length} — منها ${result.approvedReviews || 0} منشورة`)
+  if (pending > 0) {
+    inf(`${pending} تقييم قيد المراجعة — اعتمده من اللوحة ليظهر على الموقع`)
+  }
+} else {
+  inf('لا توجد تقييمات بعد — تُدار من قسم «⭐ آراء المرضى» في اللوحة')
+}
+if (Array.isArray(result.surveyQ) && result.surveyQ.length) {
+  ok(`أسئلة الاستبيان مضبوطة من اللوحة (${result.surveyQ.length} أسئلة)`)
+} else {
+  inf('أسئلة الاستبيان فارغة — الموقع يستخدم الأسئلة الافتراضية')
+}
+
+// ─── 5) المسوّدات غير المنشورة ───
 hdr('4) المسوّدات')
-if (result.drafts > 0) {
-  no(`يوجد ${result.drafts} مسوّدة غير منشورة`)
+if (result.drafts > 0) {  no(`يوجد ${result.drafts} مسوّدة غير منشورة`)
   console.log('')
   console.log('  \x1b[33m⚡ الموقع يعرض المحتوى المنشور فقط — وليس المسوّدات!\x1b[0m')
   console.log('')
