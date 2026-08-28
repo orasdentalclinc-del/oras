@@ -372,9 +372,10 @@ footer::before{content:'';position:absolute;inset:0;background:radial-gradient(6
 .sv-opts input{display:none}
 .sv-opts .sv-btn{
   display:block;padding:.45rem 0;border:1.6px solid var(--line);border-radius:12px;
-  font-size:1.15rem;line-height:1.4;background:var(--cream);transition:.2s;
+  font-size:1.02rem;line-height:1.4;letter-spacing:1px;white-space:nowrap;
+  background:var(--cream);color:var(--gold);transition:.2s;
 }
-.sv-opts input:checked + .sv-btn{background:var(--grad-gold);border-color:transparent;box-shadow:0 6px 14px rgba(201,162,39,.3)}
+.sv-opts input:checked + .sv-btn{background:var(--grad-gold);border-color:transparent;color:#4A3A0A;box-shadow:0 6px 14px rgba(201,162,39,.3)}
 .rev-thanks{
   margin-top:16px;background:var(--gold-pale);border:1px solid var(--gold-soft);border-radius:16px;
   padding:16px 18px;display:flex;flex-direction:column;gap:4px;
@@ -447,6 +448,9 @@ html:not([data-has-partners]) [data-nav="partners"]{display:none}
   .rev-summary{flex-direction:column;text-align:center;padding:22px}
   .rev-avg{justify-content:center}
   .star-picker{justify-content:center}
+  .sv-opts{flex-wrap:wrap}
+  .sv-opts label{flex:1 1 40%}
+  .sv-opts .sv-btn{font-size:.92rem}
   .stats-band{grid-template-columns:1fr 1fr}
   .hero-frame{border-radius:120px 120px 20px 20px}
   .hero-frame img{height:380px}
@@ -982,7 +986,7 @@ html:not([data-has-partners]) [data-nav="partners"]{display:none}
     </button>
 
     <div class="rev-thanks" id="revThanks" hidden>
-      <b>🎉 شكراً لتقييمك!</b>
+      <b>★ شكراً لتقييمك!</b>
       <span>تم تجهيز تقييمك وإرساله لإدارة العيادة — سيظهر على الموقع بعد المراجعة والنشر.</span>
     </div>
   </div>
@@ -1076,7 +1080,7 @@ $('#bookForm').addEventListener('submit', (e) => {
 });
 
 /* ═══════════ التقييمات والآراء ═══════════ */
-const REV_EMOJI = ['😞', '😕', '😐', '🙂', '😍'];
+const revStars = (v) => '★'.repeat(v) + '☆'.repeat(5 - v);
 const DEFAULT_SURVEY = [
   'ما مدى رضاك عن نظافة العيادة وتعقيم الأدوات؟',
   'كيف قيّم تعامل الطبيب وشرحه لحالتك؟',
@@ -1139,7 +1143,7 @@ function buildSurvey() {
       inp.value = String(v);
       const btn = document.createElement('span');
       btn.className = 'sv-btn';
-      btn.textContent = REV_EMOJI[v - 1];
+      btn.textContent = revStars(v);
       btn.title = v + ' من 5';
       lab.appendChild(inp);
       lab.appendChild(btn);
@@ -1175,17 +1179,17 @@ $('#revSubmit').addEventListener('click', () => {
   const text = $('#rvText').value.trim();
   if (!revRating) { showToast('من فضلك اختر تقييماً بالنجوم أولاً'); return; }
   if (!name) { showToast('من فضلك اكتب اسمك'); return; }
-  const starsLine = '⭐'.repeat(revRating) + ' (' + revRating + '/5)';
+  const starsLine = revStars(revRating) + ' (' + revRating + '/5)';
   const answers = surveyQuestions
     .map((q, qi) => {
       const picked = document.querySelector('input[name="sv_' + qi + '"]:checked');
       if (!q || !picked) return null;
-      return '   ' + (qi + 1) + ') ' + q + ' ➜ ' + picked.value + '/5 ' + REV_EMOJI[picked.value - 1];
+      return '   ' + (qi + 1) + ') ' + q + ' ➜ ' + picked.value + '/5 ' + revStars(Number(picked.value));
     })
     .filter(Boolean);
   const clinic = $('.brandShort')?.textContent || 'أوراس';
   const msg =
-    '⭐ تقييم جديد من موقع ' + clinic + ' لطب الأسنان\n' +
+    '★ تقييم جديد من موقع ' + clinic + ' لطب الأسنان\n' +
     '────────────────\n' +
     starsLine + '\n' +
     '👤 الاسم: ' + name + '\n' +
@@ -1219,4 +1223,5 @@ $('#revSubmit').addEventListener('click', () => {
 </script>
 <script src="oras-sanity.js?v=6" defer></script>
 </body>
+</html>
 </html>

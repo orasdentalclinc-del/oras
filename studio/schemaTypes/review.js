@@ -98,7 +98,7 @@ export default {
   preview: {
     select: {name: 'name', rating: 'rating', comment: 'comment', status: 'status', featured: 'featured'},
     prepare: ({name, rating, comment, status, featured}) => {
-      const stars = rating ? '⭐'.repeat(Math.max(1, Math.min(5, rating))) : '—'
+      const stars = rating ? '★'.repeat(Math.max(1, Math.min(5, rating))) : '—'
       const statusLabel =
         status === 'approved' ? '✅ منشور' : status === 'rejected' ? '🚫 مرفوض' : '⏳ قيد المراجعة'
       return {
