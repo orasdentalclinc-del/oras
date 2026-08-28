@@ -157,6 +157,9 @@
     '},',
     '"gallery": *[_type == "galleryItem" && isActive != false]|order(order asc){',
     '_id, image, caption',
+    '},',
+    '"doctors": *[_type == "doctor"]|order(order asc){',
+    '_id, name, role, bio, badge, photo',
     '}',
     '}',
   ].join(' ')
@@ -244,19 +247,26 @@
     }
     setDataImg('about', s.aboutImage, 900, null, false)
 
-    /* الأرقام */
-    if (Array.isArray(s.stats) && s.stats.length) {
-      setText('#aboutYears', s.stats[0].value)
-      setText('#aboutYearsLabel', s.stats[0].label)
+    /* الأرقام — تُعرض فقط عند إدخال قيم حقيقية من لوحة التحكم */
+    var stats = (Array.isArray(s.stats) ? s.stats : []).filter(function (st) {
+      return st && (st.value || st.label)
+    })
+    if (stats.length) {
+      var first = stats[0]
+      setText('#aboutYears', first.value)
+      setText('#aboutYearsLabel', first.label)
+      var badge = $('#expBadge')
+      if (badge) badge.removeAttribute('hidden')
       var band = $('#statsBand')
       if (band) {
         clear(band)
-        s.stats.forEach(function (st) {
+        stats.forEach(function (st) {
           var d = make('div', 'stat')
           d.appendChild(make('b', null, st && st.value))
           d.appendChild(make('span', null, st && st.label))
           band.appendChild(d)
         })
+        band.removeAttribute('hidden')
       }
     }
 
@@ -612,6 +622,49 @@
     if (typeof window.bindBA === 'function') window.bindBA()
   }
 
+  /* ---------- الأطباء ---------- */
+  function renderDoctors(list) {
+    var grid = $('#docGrid')
+    if (!grid || !list || !list.length) return
+    clear(grid)
+    list.forEach(function (d, i) {
+      var art = make('article', 'doc reveal in')
+      var url = imageUrl(d.photo, 240, 240, true)
+      if (url) {
+        var im = document.createElement('img')
+        im.className = 'avatar'
+        im.setAttribute('loading', 'lazy')
+        im.setAttribute('src', url)
+        im.setAttribute('alt', d.name || 'طبيب')
+        art.appendChild(im)
+      } else {
+        var initial = String(d.name || '?').replace(/^(د\.|د|الأستاذ|الاستاذ)\s*/, '').charAt(0) || '؟'
+        var svgNS = 'http://www.w3.org/2000/svg'
+        var svg = document.createElementNS(svgNS, 'svg')
+        svg.setAttribute('class', 'avatar')
+        svg.setAttribute('viewBox', '0 0 96 96')
+        var gid = 'dg-' + (d._id || i)
+        svg.innerHTML =
+          '<defs><linearGradient id="' +
+          gid +
+          '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3DE9B"/><stop offset="1" stop-color="#C9A227"/></linearGradient></defs>' +
+          '<circle cx="48" cy="48" r="46" fill="url(#' +
+          gid +
+          ')"/><circle cx="48" cy="48" r="38" fill="#FFFDF4"/>' +
+          '<text x="48" y="62" text-anchor="middle" font-size="34" font-weight="800" fill="#A8841C" font-family="inherit">' +
+          initial +
+          '</text>'
+        art.appendChild(svg)
+      }
+      art.appendChild(make('h3', null, d.name))
+      if (d.role) art.appendChild(make('div', 'role', d.role))
+      if (d.bio) art.appendChild(make('p', null, d.bio))
+      if (d.badge) art.appendChild(make('span', 'chip', d.badge))
+      grid.appendChild(art)
+    })
+    grid.removeAttribute('hidden')
+  }
+
   /* ---------- معرض الصور ---------- */
   function renderGallery(list) {
     var grid = $('#galGrid')
@@ -632,6 +685,7 @@
     renderServices(data.services || [])
     renderCases(data.cases || [])
     renderGallery(data.gallery || [])
+    renderDoctors(data.doctors || [])
     document.documentElement.setAttribute('data-oras-cms', 'ready')
   }
 
