@@ -1,3 +1,11 @@
+/**
+ * نظام الحجز الآلي بالساعة — عيادة أوراس لطب الأسنان
+ * ─────────────────────────────────────────────────────
+ * • الحجز بالساعة: 12 ساعة متواصلة من 8:00 صباحاً حتى 8:00 مساءً.
+ * • رسالة «متاح / غير متاح» تظهر فقط بعد الضغط على زر «احجز الآن».
+ * • زر الحجز الآلي منفصل تماماً عن زر واتساب (مسارين مستقلين).
+ */
+
 var ENDPOINT = 'https://script.google.com/macros/s/AKfycby8lxyjADZwmM_YVFxklEEtjhNwY691C-rNv5aaOrPoWnH4OFY2iIHDzpI-k8Tq3Jo8Ow/exec';
 
 (function () {
@@ -11,23 +19,58 @@ var ENDPOINT = 'https://script.google.com/macros/s/AKfycby8lxyjADZwmM_YVFxklEEtj
     return;
   }
 
-  // حالة التوفر العامة
+  // ─── إعدادات الدوام: 12 ساعة متواصلة من 8 صباحاً حتى 8 مساءً ───
+  var OPEN_HOUR = 8;    // أول ساعة حجز تبدأ 08:00
+  var CLOSE_HOUR = 20;  // الإغلاق 20:00 (آخر ساعة حجز 19:00 - 20:00)
+  var DEFAULT_MAX = 4;  // السعة الافتراضية للساعة الواحدة (يُحدَّث من الخادم)
+
+  // حالة التوفر — تُجلب عند الضغط على زر الحجز فقط
   var state = {
-    max: 4,
+    max: DEFAULT_MAX,
     closed: [],
-    periods: ['صباحية', 'مسائية'],
     taken: {},
+    today: '',
+    nowHour: -1,
     lastFetch: 0
   };
 
+  var busy = false; // قفل يمنع النقر المزدوج أثناء التحقق/الحجز
+
   var dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-  // دوال التاريخ المساعدة
+  // ─── أدوات الساعات ───
+  function hourValue(h) {
+    return (h < 10 ? '0' : '') + h + ':00';
+  }
+
+  var HOURS = [];
+  (function () {
+    for (var h = OPEN_HOUR; h < CLOSE_HOUR; h++) HOURS.push(hourValue(h));
+  })();
+
+  // "14:00" → "2:00 مساءً"
+  function hourLabel(hourVal) {
+    var hh = parseInt(hourVal, 10);
+    if (isNaN(hh)) return hourVal;
+    if (hh < 12) return hh + ':00 صباحاً';
+    if (hh === 12) return '12:00 ظهراً';
+    return (hh - 12) + ':00 مساءً';
+  }
+
+  // "14:00" → "14:00 - 15:00"
+  function hourRange(hourVal) {
+    var hh = parseInt(hourVal, 10);
+    if (isNaN(hh) || hh < 0 || hh > 23) return hourVal;
+    return hourVal + ' - ' + hourValue(hh + 1);
+  }
+
+  // ─── أدوات التاريخ ───
   function pad2(n) {
     return n < 10 ? '0' + n : '' + n;
   }
 
   function getTodayStr() {
+    if (state.today) return state.today; // تاريخ اليوم حسب توقيت الخادم
     var now = new Date();
     return now.getFullYear() + '-' + pad2(now.getMonth() + 1) + '-' + pad2(now.getDate());
   }
@@ -59,335 +102,237 @@ var ENDPOINT = 'https://script.google.com/macros/s/AKfycby8lxyjADZwmM_YVFxklEEtj
     return Array.isArray(state.closed) && state.closed.indexOf(dateStr) !== -1;
   }
 
-  function getSlotCount(dateStr, period) {
-    if (!dateStr || !period) return 0;
-    var key = dateStr + '|' + period;
-    return (state.taken && state.taken[key]) ? parseInt(state.taken[key], 10) || 0 : 0;
+  // هل الساعة بدأت أو انتهت اليوم؟ (مقارنة بتوقيت الخادم، وإن لم يتوفر فتوقيت الجهاز)
+  function isHourPast(dateStr, hourVal) {
+    if (dateStr !== getTodayStr()) return false;
+    var nowH = state.nowHour >= 0 ? state.nowHour : new Date().getHours();
+    return parseInt(hourVal, 10) <= nowH;
   }
 
-  function isPeriodFull(dateStr, period) {
-    if (!dateStr || !period) return false;
-    return getSlotCount(dateStr, period) >= state.max;
+  // ─── حساب الإشغال بالساعة ───
+  function hourKey(dateStr, hourVal) {
+    return dateStr + '|' + hourVal;
   }
 
-  // البحث عن 3 مواعيد بديلة ذكية
-  function findAlternatives(startDateStr, preferredPeriod, count) {
+  function getTakenCount(dateStr, hourVal) {
+    if (!dateStr || !hourVal) return 0;
+    var k = hourKey(dateStr, hourVal);
+    return (state.taken && state.taken[k]) ? parseInt(state.taken[k], 10) || 0 : 0;
+  }
+
+  function isHourFull(dateStr, hourVal) {
+    if (!dateStr || !hourVal) return false;
+    return getTakenCount(dateStr, hourVal) >= (state.max || DEFAULT_MAX);
+  }
+
+  // الساعات الشاغرة في يوم معيّن
+  function freeHoursForDate(dateStr) {
+    var out = [];
+    if (!dateStr) return out;
+    for (var i = 0; i < HOURS.length; i++) {
+      var hr = HOURS[i];
+      if (!isHourFull(dateStr, hr) && !isHourPast(dateStr, hr)) out.push(hr);
+    }
+    return out;
+  }
+
+  // بحث عن بدائل: ساعات لاحقة في نفس اليوم أولاً، ثم أقرب الأيام التالية
+  function findAlternatives(dateStr, hourVal, count) {
     count = count || 3;
     var list = [];
-    var startObj = parseDateObj(startDateStr);
     var todayObj = parseDateObj(getTodayStr());
+    var cur = parseDateObj(dateStr);
+    if (!cur || cur < todayObj) cur = new Date(todayObj.getTime());
 
-    var cur = startObj && startObj >= todayObj ? new Date(startObj.getTime()) : new Date(todayObj.getTime());
+    // 1) ساعات شاغرة لاحقة في نفس اليوم
+    var sameDay = freeHoursForDate(dateStr);
+    for (var i = 0; i < sameDay.length && list.length < count; i++) {
+      if (!hourVal || sameDay[i] > hourVal) {
+        list.push(makeAlt(dateStr, sameDay[i]));
+      }
+    }
+
+    // 2) أقرب الأيام التالية (مع تجاوز الجمعة والأيام المغلقة وساعات اليوم المنقضية)
     var checkedDays = 0;
-
-    var candidatePeriods = (preferredPeriod === 'مسائية')
-      ? ['مسائية', 'صباحية']
-      : (preferredPeriod === 'صباحية' ? ['صباحية', 'مسائية'] : ['صباحية', 'مسائية']);
-
     while (list.length < count && checkedDays < 30) {
       checkedDays++;
-      var ds = cur.getFullYear() + '-' + pad2(cur.getMonth() + 1) + '-' + pad2(cur.getDate());
-      var dayIndex = cur.getDay();
-
-      if (dayIndex !== 5 && (!state.closed || state.closed.indexOf(ds) === -1)) {
-        for (var p = 0; p < candidatePeriods.length; p++) {
-          var per = candidatePeriods[p];
-          if (!isPeriodFull(ds, per)) {
-            list.push({
-              date: ds,
-              period: per,
-              dayName: dayNames[dayIndex],
-              label: dayNames[dayIndex] + ' ' + ds + ' (' + per + ')'
-            });
-            if (list.length >= count) break;
-          }
-        }
-      }
       cur.setDate(cur.getDate() + 1);
+      var ds = cur.getFullYear() + '-' + pad2(cur.getMonth() + 1) + '-' + pad2(cur.getDate());
+      if (isClosedDate(ds)) continue;
+      var dayFree = freeHoursForDate(ds);
+      for (var j = 0; j < dayFree.length && list.length < count; j++) {
+        list.push(makeAlt(ds, dayFree[j]));
+      }
     }
     return list;
   }
 
-  // عرض الإشعارات للمستخدم
-  function showToast(msg) {
-    var toast = document.getElementById('toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'toast';
-      toast.className = 'toast';
-      document.body.appendChild(toast);
-    }
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(toast._timer);
-    toast._timer = setTimeout(function () {
-      toast.classList.remove('show');
-    }, 4500);
+  function makeAlt(dateStr, hourVal) {
+    var d = parseDateObj(dateStr);
+    var dayName = d ? dayNames[d.getDay()] : '';
+    return {
+      date: dateStr,
+      hour: hourVal,
+      label: dayName + ' ' + dateStr + ' — ' + hourLabel(hourVal)
+    };
   }
 
-  // تجهيز عنصر حالة الحجز أسفل الفترات
-  function getOrCreateStatusBox() {
-    var box = document.getElementById('bookingStatusBox');
-    if (box) return box;
-
-    var seg = document.querySelector('.seg');
-    if (!seg) return null;
-
-    box = document.createElement('div');
-    box.id = 'bookingStatusBox';
-    box.style.cssText = 'margin-top:12px;padding:12px 14px;border-radius:14px;font-size:0.9rem;font-weight:700;line-height:1.6;transition:all .3s ease;display:none;';
-    
-    // إدراج المربع أسفل اختيار الفترات
-    if (seg.parentNode) {
-      seg.parentNode.appendChild(box);
-    }
-
-    // إضافة نمط خفيف للخيارات المعطلة
-    if (!document.getElementById('bookingDynamicStyle')) {
-      var st = document.createElement('style');
-      st.id = 'bookingDynamicStyle';
-      st.textContent =
-        '.seg label input:disabled + .seg-btn {' +
-        '  opacity: 0.45 !important;' +
-        '  cursor: not-allowed !important;' +
-        '  background: #f1ede2 !important;' +
-        '  border-color: #dcd0b8 !important;' +
-        '  color: #a89a80 !important;' +
-        '  text-decoration: line-through;' +
-        '  box-shadow: none !important;' +
-        '}' +
-        '.booking-alt-btn {' +
-        '  display: inline-block;' +
-        '  margin: 4px 4px 0 0;' +
-        '  padding: 5px 10px;' +
-        '  background: #fff;' +
-        '  border: 1.5px solid #C9A227;' +
-        '  border-radius: 8px;' +
-        '  color: #8A6D1F;' +
-        '  font-size: 0.82rem;' +
-        '  font-weight: 800;' +
-        '  cursor: pointer;' +
-        '  transition: all .2s ease;' +
-        '}' +
-        '.booking-alt-btn:hover {' +
-        '  background: #C9A227;' +
-        '  color: #fff;' +
-        '}';
-      document.head.appendChild(st);
-    }
-
-    return box;
+  // ─── صندوق رسالة التوفر (لا يظهر إلا بعد الضغط على زر الحجز) ───
+  function getStatusBox() {
+    return document.getElementById('bookingStatusBox');
   }
 
-  // تحديث واجهة التوفر وحالة الفترات
-  function updateAvailabilityUI() {
-    var dateInput = document.getElementById('fDate');
-    var box = getOrCreateStatusBox();
+  function showStatus(kind, html) {
+    var box = getStatusBox();
     if (!box) return;
-
-    var morningRadio = document.querySelector('input[name="period"][value="صباحية"]');
-    var eveningRadio = document.querySelector('input[name="period"][value="مسائية"]');
-    var anyRadio = document.querySelector('input[name="period"][value="أي فترة تناسبكم"]');
-    var checkedRadio = document.querySelector('input[name="period"]:checked');
-    var selectedPeriod = checkedRadio ? checkedRadio.value : 'صباحية';
-
-    var dateVal = dateInput ? dateInput.value : '';
-
-    // حالة 1: لم يتم اختيار تاريخ بعد
-    if (!dateVal) {
-      if (morningRadio) morningRadio.disabled = false;
-      if (eveningRadio) eveningRadio.disabled = false;
-      if (anyRadio) anyRadio.disabled = false;
-      box.style.display = 'block';
-      box.style.background = 'rgba(201,162,39,0.08)';
-      box.style.border = '1px solid #EFE4C4';
-      box.style.color = '#6F6448';
-      box.innerHTML = '💡 <span>اختر تاريخ الزيارة المفضل لمعرفة الأوقات المتاحة فوراً.</span>';
-      return;
-    }
-
-    // حالة 2: تاريخ ماضٍ
-    if (isPastDate(dateVal)) {
-      if (morningRadio) morningRadio.disabled = true;
-      if (eveningRadio) eveningRadio.disabled = true;
-      if (anyRadio) anyRadio.disabled = true;
-      box.style.display = 'block';
-      box.style.background = '#fef2f2';
-      box.style.border = '1px solid #fca5a5';
-      box.style.color = '#b91c1c';
-      box.innerHTML = '⚠️ <span>هذا التاريخ قد مضى. يرجى اختيار تاريخ ابتداءً من اليوم.</span>';
-      return;
-    }
-
-    // حالة 3: يوم الجمعة (عطلة أسبوعية)
-    if (isFriday(dateVal)) {
-      if (morningRadio) morningRadio.disabled = true;
-      if (eveningRadio) eveningRadio.disabled = true;
-      if (anyRadio) anyRadio.disabled = true;
-      box.style.display = 'block';
-      box.style.background = '#fffbeb';
-      box.style.border = '1px solid #fde68a';
-      box.style.color = '#92400e';
-
-      var altsFri = findAlternatives(dateVal, selectedPeriod, 3);
-      var friHtml = '🏖️ <b>الجمعة عطلة وراحة للعيادة.</b><div style="margin-top:6px;font-weight:600">أقرب الأيام المتاحة:</div><div style="margin-top:4px">';
-      for (var i = 0; i < altsFri.length; i++) {
-        friHtml += '<button type="button" class="booking-alt-btn" data-date="' + altsFri[i].date + '" data-period="' + altsFri[i].period + '">' + altsFri[i].label + '</button>';
-      }
-      friHtml += '</div>';
-      box.innerHTML = friHtml;
-      bindAltButtons(box);
-      return;
-    }
-
-    // حالة 4: يوم مغلق مخصص
-    if (isClosedDate(dateVal)) {
-      if (morningRadio) morningRadio.disabled = true;
-      if (eveningRadio) eveningRadio.disabled = true;
-      if (anyRadio) anyRadio.disabled = true;
-      box.style.display = 'block';
-      box.style.background = '#fffbeb';
-      box.style.border = '1px solid #fde68a';
-      box.style.color = '#92400e';
-
-      var altsCls = findAlternatives(dateVal, selectedPeriod, 3);
-      var clsHtml = '⛔ <b>العيادة مغلقة في هذا اليوم.</b><div style="margin-top:6px;font-weight:600">المواعيد البديلة المقترحة:</div><div style="margin-top:4px">';
-      for (var c = 0; c < altsCls.length; c++) {
-        clsHtml += '<button type="button" class="booking-alt-btn" data-date="' + altsCls[c].date + '" data-period="' + altsCls[c].period + '">' + altsCls[c].label + '</button>';
-      }
-      clsHtml += '</div>';
-      box.innerHTML = clsHtml;
-      bindAltButtons(box);
-      return;
-    }
-
-    // فحص الفترات
-    var morningFull = isPeriodFull(dateVal, 'صباحية');
-    var eveningFull = isPeriodFull(dateVal, 'مسائية');
-
-    if (morningRadio) morningRadio.disabled = morningFull;
-    if (eveningRadio) eveningRadio.disabled = eveningFull;
-    if (anyRadio) anyRadio.disabled = (morningFull && eveningFull);
-
-    // إذا كانت الفترة المختارة ممتلئة، التحويل تلقائياً لفترة متاحة إن وجدت
-    if (selectedPeriod === 'صباحية' && morningFull && !eveningFull && eveningRadio) {
-      eveningRadio.checked = true;
-      selectedPeriod = 'مسائية';
-    } else if (selectedPeriod === 'مسائية' && eveningFull && !morningFull && morningRadio) {
-      morningRadio.checked = true;
-      selectedPeriod = 'صباحية';
-    }
-
-    // حالة 5: اليوم ممتلئ بالكامل في الفترتين
-    if (morningFull && eveningFull) {
-      box.style.display = 'block';
-      box.style.background = '#fef2f2';
-      box.style.border = '1px solid #fca5a5';
-      box.style.color = '#b91c1c';
-
-      var altsFull = findAlternatives(dateVal, selectedPeriod, 3);
-      var fullHtml = '❌ <b>جميع فترات هذا اليوم ممتلئة بالكامل.</b><div style="margin-top:6px;font-weight:600">أقرب مواعيد بديلة متاحة:</div><div style="margin-top:4px">';
-      for (var k = 0; k < altsFull.length; k++) {
-        fullHtml += '<button type="button" class="booking-alt-btn" data-date="' + altsFull[k].date + '" data-period="' + altsFull[k].period + '">' + altsFull[k].label + '</button>';
-      }
-      fullHtml += '</div>';
-      box.innerHTML = fullHtml;
-      bindAltButtons(box);
-      return;
-    }
-
-    // حالة 6: الفترة المختارة ممتلئة ولكن الفترة الأخرى متاحة
-    if ((selectedPeriod === 'صباحية' && morningFull) || (selectedPeriod === 'مسائية' && eveningFull)) {
-      var otherPeriod = selectedPeriod === 'صباحية' ? 'مسائية' : 'صباحية';
-      box.style.display = 'block';
-      box.style.background = '#fffbeb';
-      box.style.border = '1px solid #fde68a';
-      box.style.color = '#92400e';
-
-      var altsP = findAlternatives(dateVal, selectedPeriod, 3);
-      var pHtml = '⚠️ <b>الفترة الـ' + selectedPeriod + ' ممتلئة.</b> تتوفر الفترة الـ<b>' + otherPeriod + '</b> في نفس اليوم، أو المواعيد التالية:<div style="margin-top:4px">';
-      pHtml += '<button type="button" class="booking-alt-btn" data-date="' + dateVal + '" data-period="' + otherPeriod + '">نفس اليوم (' + otherPeriod + ')</button>';
-      for (var j = 0; j < altsP.length; j++) {
-        pHtml += '<button type="button" class="booking-alt-btn" data-date="' + altsP[j].date + '" data-period="' + altsP[j].period + '">' + altsP[j].label + '</button>';
-      }
-      pHtml += '</div>';
-      box.innerHTML = pHtml;
-      bindAltButtons(box);
-      return;
-    }
-
-    // حالة 7: متاح
-    var morningCount = getSlotCount(dateVal, 'صباحية');
-    var eveningCount = getSlotCount(dateVal, 'مسائية');
-    var maxVal = state.max || 4;
-
+    box.className = 'booking-status ' + (kind || 'info');
+    box.innerHTML = html;
     box.style.display = 'block';
-    box.style.background = '#f0fdf4';
-    box.style.border = '1px solid #bbf7d0';
-    box.style.color = '#166534';
-    box.innerHTML = '✅ <span>الموعد متاح للحجز! (الصباحية: ' + (maxVal - morningCount) + ' شاغر | المسائية: ' + (maxVal - eveningCount) + ' شاغر)</span>';
+    try { box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
   }
 
-  // تفعيل النقر على المواعيد البديلة
-  function bindAltButtons(container) {
-    if (!container) return;
-    var btns = container.querySelectorAll('.booking-alt-btn');
+  function hideStatus() {
+    var box = getStatusBox();
+    if (box) {
+      box.style.display = 'none';
+      box.innerHTML = '';
+    }
+  }
+
+  function renderAlts(alts) {
+    var html = '<div style="margin-top:6px;font-weight:800">أقرب المواعيد المتاحة:</div><div style="margin-top:4px">';
+    for (var i = 0; i < alts.length; i++) {
+      html += '<button type="button" class="booking-alt-btn" data-date="' + alts[i].date + '" data-hour="' + alts[i].hour + '">' + alts[i].label + '</button>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function bindAltButtons() {
+    var box = getStatusBox();
+    if (!box) return;
+    var btns = box.querySelectorAll('.booking-alt-btn');
     for (var i = 0; i < btns.length; i++) {
       btns[i].addEventListener('click', function () {
         var d = this.getAttribute('data-date');
-        var p = this.getAttribute('data-period');
+        var h = this.getAttribute('data-hour');
         var dateInput = document.getElementById('fDate');
-        if (dateInput && d) {
-          dateInput.value = d;
-        }
-        if (p) {
-          var r = document.querySelector('input[name="period"][value="' + p + '"]');
+        if (dateInput && d) dateInput.value = d;
+        if (h) {
+          var r = document.querySelector('input[name="hour"][value="' + h + '"]');
           if (r) r.checked = true;
         }
-        updateAvailabilityUI();
+        // الضغط على بديل = إعادة تشغيل فحص التوفر والحجز فوراً
+        runAutoBooking();
       });
     }
   }
 
-  // جلب التوفر من الرابط
+  // ─── قراءة بيانات النموذج ───
+  function readForm() {
+    var nameInput = document.getElementById('fName');
+    var phoneInput = document.getElementById('fPhone');
+    var serviceInput = document.getElementById('fService');
+    var dateInput = document.getElementById('fDate');
+    var notesInput = document.getElementById('fNotes');
+    var hourRadio = document.querySelector('input[name="hour"]:checked');
+    return {
+      name: nameInput ? nameInput.value.trim() : '',
+      phone: phoneInput ? phoneInput.value.trim() : '',
+      service: serviceInput ? serviceInput.value : 'فحص وتشخيص عام',
+      date: dateInput ? dateInput.value : '',
+      hour: hourRadio ? hourRadio.value : '',
+      notes: notesInput ? notesInput.value.trim() : '',
+      nameInput: nameInput,
+      phoneInput: phoneInput,
+      dateInput: dateInput
+    };
+  }
+
+  function showToastMsg(msg) {
+    var toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(function () { toast.classList.remove('show'); }, 4500);
+  }
+
+  // ─── جلب حالة التوفر من الخادم ───
   function fetchAvailability(callback) {
     var sep = ENDPOINT.indexOf('?') === -1 ? '?' : '&';
     var url = ENDPOINT + sep + 'action=availability&_t=' + new Date().getTime();
 
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.timeout = 12000;
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
+    var done = false;
+    function finish(ok) {
+      if (done) return;
+      done = true;
+      if (ok) state.lastFetch = new Date().getTime();
+      if (typeof callback === 'function') callback(ok);
+    }
+
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.timeout = 12000;
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
         if (xhr.status >= 200 && xhr.status < 400) {
           try {
             var data = JSON.parse(xhr.responseText);
             if (data && data.ok) {
               if (typeof data.max === 'number') state.max = data.max;
               if (Array.isArray(data.closed)) state.closed = data.closed;
-              if (Array.isArray(data.periods)) state.periods = data.periods;
               if (data.taken && typeof data.taken === 'object') state.taken = data.taken;
-              state.lastFetch = new Date().getTime();
+              if (typeof data.today === 'string' && data.today) state.today = data.today;
+              if (typeof data.nowHour === 'number') state.nowHour = data.nowHour;
+              finish(true);
+              return;
             }
           } catch (e) {}
         }
-        updateAvailabilityUI();
-        if (typeof callback === 'function') callback();
-      }
-    };
-    xhr.onerror = function () {
-      updateAvailabilityUI();
-      if (typeof callback === 'function') callback();
-    };
-    xhr.ontimeout = function () {
-      updateAvailabilityUI();
-      if (typeof callback === 'function') callback();
-    };
-    xhr.send();
+        finish(false);
+      };
+      xhr.onerror = function () { finish(false); };
+      xhr.ontimeout = function () { finish(false); };
+      xhr.send();
+    } catch (e) {
+      finish(false);
+    }
   }
 
-  // فتح واتساب بالرسالة المنسقة
-  function openWhatsApp(payload, successNote) {
+  // ─── تسجيل الحجز على الخادم (الحجز الآلي) ───
+  function submitBooking(payload, onDone) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', ENDPOINT, true);
+    xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+    xhr.timeout = 15000;
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status >= 200 && xhr.status < 400) {
+        try {
+          var res = JSON.parse(xhr.responseText);
+          if (res) {
+            onDone(res);
+            return;
+          }
+        } catch (e) {}
+      }
+      onDone({ ok: false, networkError: true });
+    };
+    xhr.onerror = function () { onDone({ ok: false, networkError: true }); };
+    xhr.ontimeout = function () { onDone({ ok: false, networkError: true }); };
+
+    try {
+      xhr.send(JSON.stringify(payload));
+    } catch (e) {
+      onDone({ ok: false, networkError: true });
+    }
+  }
+
+  // ─── زر واتساب المنفصل: تجهيز الرسالة وفتح واتساب مباشرة ───
+  function openWhatsApp(payload) {
     var brandEl = document.querySelector('.brandShort');
     var clinic = (brandEl && brandEl.textContent) ? brandEl.textContent.trim() : 'أوراس';
     var msg =
@@ -396,8 +341,8 @@ var ENDPOINT = 'https://script.google.com/macros/s/AKfycby8lxyjADZwmM_YVFxklEEtj
       '👤 الاسم: ' + (payload.name || '') + '\n' +
       '📞 الهاتف: ' + (payload.phone || '') + '\n' +
       '🩺 الخدمة: ' + (payload.service || 'فحص وتشخيص عام') + '\n' +
-      '📅 التاريخ المفضل: ' + (payload.date || 'أي يوم مناسب') + '\n' +
-      '🕐 الفترة: ' + (payload.period || 'أي فترة تناسبكم') + '\n' +
+      '📅 التاريخ: ' + (payload.date || 'أي يوم مناسب') + '\n' +
+      '🕐 الساعة: ' + (payload.hour ? hourLabel(payload.hour) + ' (' + hourRange(payload.hour) + ')' : 'أي ساعة تناسبكم') + '\n' +
       '📝 ملاحظات: ' + (payload.notes || '—') + '\n' +
       '────────────────\n' +
       'أُرسل من موقع العيادة';
@@ -405,196 +350,232 @@ var ENDPOINT = 'https://script.google.com/macros/s/AKfycby8lxyjADZwmM_YVFxklEEtj
     var waNum = window.__WA__ || '249912345678';
     var url = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg);
     var win = window.open(url, '_blank');
-    if (!win) {
-      window.location.href = url;
-    }
-    showToast(successNote || '✅ تم تجهيز حجزك — أكمل الإرسال من واتساب');
+    if (!win) window.location.href = url;
+    showToastMsg('✅ تم تجهيز طلبك — أكمل الإرسال من واتساب');
   }
 
-  // معالجة إرسال النموذج باعتراض مرحلة الالتقاط
+  // زر واتساب: مسار مستقل تماماً — لا فحص توفر ولا تسجيل آلي
+  function handleWhatsAppClick() {
+    var f = readForm();
+    if (!f.name || !f.phone) {
+      showToastMsg('من فضلك أدخل الاسم ورقم الهاتف');
+      if (!f.name && f.nameInput) f.nameInput.focus();
+      else if (!f.phone && f.phoneInput) f.phoneInput.focus();
+      return;
+    }
+    openWhatsApp(f);
+  }
+
+  // ─── المسار الآلي: فحص التوفر يبدأ فقط بعد الضغط على زر الحجز ───
   function handleFormSubmit(e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
+    if (e) {
+      e.preventDefault();
+      if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+    }
+    runAutoBooking();
+  }
 
-    var form = document.getElementById('bookForm');
-    if (!form) return;
+  function runAutoBooking() {
+    if (busy) return;
 
-    var nameInput = document.getElementById('fName');
-    var phoneInput = document.getElementById('fPhone');
-    var serviceInput = document.getElementById('fService');
-    var dateInput = document.getElementById('fDate');
-    var notesInput = document.getElementById('fNotes');
-    var periodRadio = document.querySelector('input[name="period"]:checked');
+    var f = readForm();
 
-    var name = nameInput ? nameInput.value.trim() : '';
-    var phone = phoneInput ? phoneInput.value.trim() : '';
-    var service = serviceInput ? serviceInput.value : 'فحص وتشخيص عام';
-    var date = dateInput ? dateInput.value : '';
-    var period = periodRadio ? periodRadio.value : 'صباحية';
-    var notes = notesInput ? notesInput.value.trim() : '';
-
-    if (!name || !phone) {
-      showToast('من فضلك أدخل الاسم ورقم الهاتف');
-      if (!name && nameInput) nameInput.focus();
-      else if (!phone && phoneInput) phoneInput.focus();
+    // 1) التحقق من الحقول
+    if (!f.name || !f.phone) {
+      showStatus('warn', '⚠️ <span>من فضلك أدخل الاسم الكامل ورقم الهاتف أولاً.</span>');
+      showToastMsg('من فضلك أدخل الاسم ورقم الهاتف');
+      if (!f.name && f.nameInput) f.nameInput.focus();
+      else if (!f.phone && f.phoneInput) f.phoneInput.focus();
+      return;
+    }
+    if (!f.date) {
+      showStatus('warn', '📅 <span>اختر <b>تاريخ الزيارة</b> أولاً ليتحقق النظام من توفر الساعة.</span>');
+      if (f.dateInput) f.dateInput.focus();
+      return;
+    }
+    if (!f.hour) {
+      showStatus('warn', '🕐 <span>اختر <b>ساعة الحجز</b> من الجدول (من 8:00 صباحاً حتى 7:00 مساءً).</span>');
       return;
     }
 
-    // التحقق من صلاحية التاريخ
-    if (date && isPastDate(date)) {
-      showToast('⚠️ لا يمكن الحجز في تاريخ ماضٍ، يرجى اختيار تاريخ قادم');
-      if (dateInput) dateInput.focus();
+    // 2) رسالة «جاري التحقق» — أول رسالة تظهر بعد الضغط على الزر
+    busy = true;
+    setSubmitBusy(true);
+    showStatus('info', '⏳ <span>جاري التحقق من توفر موعد <b>' + hourLabel(f.hour) + '</b> يوم <b>' + f.date + '</b> …</span>');
+
+    // 3) جلب حالة التوفر الحالية من الخادم ثم الفحص
+    fetchAvailability(function (available_ok) {
+      if (!available_ok) {
+        busy = false;
+        setSubmitBusy(false);
+        showStatus('err', '📡 <span><b>تعذر التحقق من التوفر الآن.</b><br>تحقق من اتصال الإنترنت وحاول مرة أخرى، أو استخدم زر <b>«حجز عبر واتساب»</b>.</span>');
+        return;
+      }
+      evaluateAndBook(f);
+    });
+  }
+
+  // فحص التاريخ والساعة وعرض «متاح / غير متاح» ثم الحجز إن كانت متاحة
+  function evaluateAndBook(f) {
+    var dateStr = f.date;
+    var hourStr = f.hour;
+    var dateWord = dayNames[parseDateObj(dateStr) ? parseDateObj(dateStr).getDay() : 0] + ' ' + dateStr;
+
+    // تاريخ ماضٍ
+    if (isPastDate(dateStr)) {
+      finishFlow(function () {
+        showStatus('err', '⚠️ <span><b>غير متاح</b> — هذا التاريخ قد مضى. يرجى اختيار تاريخ ابتداءً من اليوم.</span>');
+      });
       return;
     }
 
-    if (date && isFriday(date)) {
-      showToast('⚠️ يوم الجمعة عطلة رسمية للعيادة، يرجى اختيار يوم آخر');
-      updateAvailabilityUI();
+    // الجمعة / يوم مغلق
+    if (isClosedDate(dateStr)) {
+      var altsClosed = findAlternatives(dateStr, hourStr, 3);
+      finishFlow(function () {
+        showStatus('err',
+          (isFriday(dateStr) ? '🏖️ <span><b>غير متاح</b> — الجمعة عطلة رسمية وراحة للعيادة.</span>'
+                             : '⛔ <span><b>غير متاح</b> — العيادة مغلقة في هذا اليوم.</span>')
+          + renderAlts(altsClosed));
+        bindAltButtons();
+      });
       return;
     }
 
-    if (date && isPeriodFull(date, period) && period !== 'أي فترة تناسبكم') {
-      showToast('⚠️ الفترة المحددة ممتلئة، يرجى اختيار فترة أو يوم آخر');
-      updateAvailabilityUI();
+    // ساعة اليوم بدأت بالفعل
+    if (isHourPast(dateStr, hourStr)) {
+      var altsPastHour = findAlternatives(dateStr, hourStr, 3);
+      finishFlow(function () {
+        showStatus('err', '⌛ <span><b>غير متاح</b> — ساعة ' + hourLabel(hourStr) + ' بدأت أو انتهت بالفعل اليوم. اختر ساعة قادمة.</span>' + renderAlts(altsPastHour));
+        bindAltButtons();
+      });
       return;
     }
 
-    var payload = {
-      name: name,
-      phone: phone,
-      service: service,
-      date: date || '',
-      period: period,
-      notes: notes || '—',
+    // الساعة ممتلئة
+    if (isHourFull(dateStr, hourStr)) {
+      var remaining = Math.max(0, (state.max || DEFAULT_MAX) - getTakenCount(dateStr, hourStr));
+      var altsFull = findAlternatives(dateStr, hourStr, 3);
+      finishFlow(function () {
+        showStatus('err',
+          '❌ <span><b>غير متاح</b> — ساعة ' + hourLabel(hourStr) + ' يوم ' + dateWord + ' ممتلئة بالكامل (المتبقي: ' + remaining + ' من ' + (state.max || DEFAULT_MAX) + ').</span>'
+          + renderAlts(altsFull));
+        bindAltButtons();
+      });
+      return;
+    }
+
+    // ✅ متاح — عرض الرسالة ثم تأكيد الحجز آلياً
+    var freeAfter = (state.max || DEFAULT_MAX) - getTakenCount(dateStr, hourStr);
+    showStatus('ok', '✅ <span><b>الموعد متاح!</b> ساعة ' + hourLabel(hourStr) + ' يوم ' + dateWord + ' — جاري تأكيد حجزك الآن …</span>');
+
+    submitBooking({
+      name: f.name,
+      phone: f.phone,
+      service: f.service,
+      date: dateStr,
+      hour: hourStr,
+      notes: f.notes || '—',
       source: 'موقع عيادة أوراس'
-    };
+    }, function (res) {
+      busy = false;
+      setSubmitBusy(false);
 
-    var submitBtn = form.querySelector('button[type="submit"]');
-    var originalBtnText = submitBtn ? submitBtn.innerHTML : '';
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '⏳ جاري تأكيد الحجز ومنع التعارض...';
-    }
-
-    // إرسال الحجز للسيرفر
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', ENDPOINT, true);
-    xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
-    xhr.timeout = 15000;
-
-    function restoreButton() {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
+      if (res && res.ok) {
+        // تحديث الإشغال محلياً
+        var k = hourKey(dateStr, hourStr);
+        state.taken[k] = (state.taken[k] || 0) + 1;
+        showStatus('ok',
+          '🎉 <span><b>تم تأكيد حجزك بنجاح!</b><br>📅 ' + dateWord + ' — 🕐 ' + hourLabel(hourStr) + ' (' + hourRange(hourStr) + ')<br>سنتواصل معك على الرقم ' + f.phone + ' لتأكيد التفاصيل. مراجعة الحجز عبر واتساب اختيارية:</span>'
+          + '<div style="margin-top:8px"><button type="button" class="booking-alt-btn" id="waAfterBook">إرسال تفاصيل الحجز عبر واتساب</button></div>');
+        var waAfter = document.getElementById('waAfterBook');
+        if (waAfter) waAfter.addEventListener('click', function () { openWhatsApp(f); });
+        showToastMsg('🎉 تم تأكيد حجزك بنجاح — نراك قريباً!');
+        return;
       }
-    }
 
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        restoreButton();
-
-        if (xhr.status >= 200 && xhr.status < 400) {
-          try {
-            var res = JSON.parse(xhr.responseText);
-
-            if (res && res.ok) {
-              // نجاح الحجز
-              if (date && res.period) {
-                var k = date + '|' + res.period;
-                state.taken[k] = (state.taken[k] || 0) + 1;
-              }
-              updateAvailabilityUI();
-              openWhatsApp(payload, '✅ تم تأكيد حجزك بنجاح! جاري تحويلك لواتساب للتواصل المباشر');
-              return;
-            }
-
-            if (res && res.conflict) {
-              // تعارض في الموعد
-              var box = getOrCreateStatusBox();
-              if (box) {
-                box.style.display = 'block';
-                box.style.background = '#fef2f2';
-                box.style.border = '1px solid #fca5a5';
-                box.style.color = '#b91c1c';
-
-                var altList = Array.isArray(res.alternatives) && res.alternatives.length > 0
-                  ? res.alternatives
-                  : findAlternatives(date || getTodayStr(), period, 3);
-
-                var msgHtml = '⚠️ <b>' + (res.reason || 'الموعد المطلوب محجوز وممتلئ') + '</b><div style="margin-top:6px;font-weight:600">اختر أحد المواعيد البديلة المتاحة:</div><div style="margin-top:4px">';
-                for (var a = 0; a < altList.length; a++) {
-                  var item = altList[a];
-                  var label = item.label || (item.date + ' (' + item.period + ')');
-                  msgHtml += '<button type="button" class="booking-alt-btn" data-date="' + item.date + '" data-period="' + item.period + '">' + label + '</button>';
-                }
-                msgHtml += '</div>';
-                box.innerHTML = msgHtml;
-                bindAltButtons(box);
-              }
-              showToast('⚠️ الموعد ممتلئ! اختر موعداً من البدائل المقترحة');
-              fetchAvailability();
-              return;
-            }
-          } catch (err) {}
-        }
-
-        // فشل الشبكة أو استجابة غير متوقعة: التحويل لواتساب لضمان عدم ضياع الحجز
-        openWhatsApp(payload, '⚠️ تم تجهيز حجزك — يتم تحويلك إلى واتساب لإتمام الحجز');
+      if (res && res.conflict) {
+        var alts = (Array.isArray(res.alternatives) && res.alternatives.length > 0)
+          ? res.alternatives.map(function (a) {
+              return { date: a.date, hour: a.hour, label: a.label || (a.date + ' — ' + hourLabel(a.hour)) };
+            })
+          : findAlternatives(dateStr, hourStr, 3);
+        showStatus('err', '⚠️ <span><b>غير متاح</b> — ' + (res.reason || 'الموعد المطلوب محجوز وممتلئ') + '</span>' + renderAlts(alts));
+        bindAltButtons();
+        showToastMsg('⚠️ الموعد لم يعد متاحاً — اختر أحد البدائل المقترحة');
+        return;
       }
-    };
 
-    xhr.onerror = function () {
-      restoreButton();
-      // عند فشل الشبكة: تحويل لواتساب حتى لا يضيع الحجز
-      openWhatsApp(payload, '⚠️ تعذر الاتصال بالخادم — يتم فتح واتساب لإتمام الحجز');
-    };
+      // خطأ شبكة أو استجابة غير متوقعة
+      showStatus('err', '📡 <span><b>تعذر إتمام تسجيل الحجز آلياً الآن.</b><br>حاول مرة أخرى، أو أرسل طلبك فوراً عبر زر <b>«حجز عبر واتساب»</b>.</span>');
+    });
+  }
 
-    xhr.ontimeout = function () {
-      restoreButton();
-      openWhatsApp(payload, '⚠️ استغرق الاتصال وقتاً أطول — يتم فتح واتساب لإتمام الحجز');
-    };
+  function finishFlow(showFn) {
+    busy = false;
+    setSubmitBusy(false);
+    showFn();
+  }
 
-    try {
-      xhr.send(JSON.stringify(payload));
-    } catch (e) {
-      restoreButton();
-      openWhatsApp(payload, '⚠️ يتم فتح واتساب لإتمام حجزك مباشرة');
+  function setSubmitBusy(isBusy) {
+    var btn = document.getElementById('bookSubmitBtn');
+    if (!btn) return;
+    if (isBusy) {
+      btn.dataset.origText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '⏳ جاري التحقق من التوفر…';
+    } else {
+      btn.disabled = false;
+      if (btn.dataset.origText) btn.innerHTML = btn.dataset.origText;
     }
   }
 
-  // التهيئة عند تحميل الصفحة
+  // ─── التهيئة ───
   function initBooking() {
     var form = document.getElementById('bookForm');
     var dateInput = document.getElementById('fDate');
+    var waBtn = document.getElementById('waBookBtn');
 
     if (dateInput) {
       dateInput.min = getTodayStr();
-      dateInput.addEventListener('change', updateAvailabilityUI);
-      dateInput.addEventListener('input', updateAvailabilityUI);
+      // لا فحص مباشر عند تغيير التاريخ — التحقق يبدأ فقط بعد ضغط زر الحجز
+      dateInput.addEventListener('change', function () { if (!busy) hideStatus(); });
     }
 
-    var radios = document.querySelectorAll('input[name="period"]');
-    for (var i = 0; i < radios.length; i++) {
-      radios[i].addEventListener('change', updateAvailabilityUI);
+    // إخفاء أي رسالة سابقة عند تغيير الساعة (التحقق يتم عند الضغط فقط)
+    var hourRadios = document.querySelectorAll('input[name="hour"]');
+    for (var i = 0; i < hourRadios.length; i++) {
+      hourRadios[i].addEventListener('change', function () { if (!busy) hideStatus(); });
     }
 
+    // زر الحجز الآلي (submit) — مسار مستقل
     if (form) {
-      // اعتراض مرحلة الالتقاط (Capture Phase) بأولوية قصوى لمنع التكرار
       form.addEventListener('submit', handleFormSubmit, true);
     }
 
-    // جلب التوفر الأولي وتحديث الواجهة
-    fetchAvailability();
-
-    // تحديث التوفر دورياً كل 3 دقائق
-    setInterval(function () {
-      fetchAvailability();
-    }, 3 * 60 * 1000);
+    // زر واتساب — مسار منفصل تماماً
+    if (waBtn) {
+      waBtn.addEventListener('click', handleWhatsAppClick);
+    }
   }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initBooking);
   } else {
     initBooking();
+  }
+
+  // خطاف اختباري خفيف (لا يؤثر على السلوك)
+  if (typeof window !== 'undefined') {
+    window.__orasBooking = {
+      HOURS: HOURS,
+      state: state,
+      hourLabel: hourLabel,
+      hourRange: hourRange,
+      isHourFull: isHourFull,
+      isHourPast: isHourPast,
+      freeHoursForDate: freeHoursForDate,
+      findAlternatives: findAlternatives
+    };
   }
 })();

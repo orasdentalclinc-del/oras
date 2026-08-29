@@ -1,17 +1,17 @@
 /**
- * نظام الحجز الآلي ومنع تعارض المواعيد — عيادة أوراس لطب الأسنان
+ * نظام الحجز الآلي بالساعة ومنع تعارض المواعيد — عيادة أوراس لطب الأسنان
  * Google Apps Script Web App Backend
+ *
+ * الحجز بالساعة: 12 ساعة متواصلة من 8:00 صباحاً حتى 8:00 مساءً
+ * (ساعات الحجز: 08:00 ، 09:00 ، ... ، 19:00 — كل ساعة فترة مستقلة بسعتها الخاصة)
  */
 
 var CONFIG = {
   SHEET_NAME: 'حجوزات',
-  MAX_PER_SLOT: 4,               // أقصى عدد حجوزات لكل فترة في اليوم
-  PERIODS: ['صباحية', 'مسائية'],
-  TIMEZONE: 'Africa/Khartoum',    // التوقيت المعتمد للعيادة
-  MORNING_HOUR: 9,               // بداية الفترة الصباحية: 09:00 ص
-  MORNING_DURATION_HOURS: 4,     // مدة الفترة الصباحية (9ص - 1ظ)
-  EVENING_HOUR: 17,              // بداية الفترة المسائية: 05:00 م
-  EVENING_DURATION_HOURS: 4,     // مدة الفترة المسائية (5م - 9م)
+  MAX_PER_HOUR: 4,               // أقصى عدد حجوزات لكل ساعة
+  OPEN_HOUR: 8,                  // بداية الدوام: 8:00 صباحاً
+  CLOSE_HOUR: 20,                // نهاية الدوام: 8:00 مساءً (آخر ساعة حجز 19:00 - 20:00)
+  TIMEZONE: 'Africa/Khartoum',   // التوقيت المعتمد للعيادة
   CALENDAR_ID: 'primary',        // معرّف تقويم جوجل
   CLINIC_NAME: 'عيادة أوراس لطب الأسنان',
   CLINIC_LOCATION: 'شارع الستين، الخرطوم، السودان',
@@ -19,6 +19,53 @@ var CONFIG = {
 };
 
 var DAY_NAMES_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+/**
+ * قائمة ساعات الحجز: من ساعة الفتح حتى ساعة الإغلاق
+ * مثال: 08:00 ، 09:00 ، ... ، 19:00  (12 ساعة متواصلة)
+ */
+function getBookingHours() {
+  var hours = [];
+  for (var h = CONFIG.OPEN_HOUR; h < CONFIG.CLOSE_HOUR; h++) {
+    hours.push(hourValue(h));
+  }
+  return hours;
+}
+
+function hourValue(h) {
+  return (h < 10 ? '0' : '') + h + ':00';
+}
+
+/**
+ * "14:00" → "2:00 مساءً"
+ */
+function hourLabel(hourVal) {
+  var hh = parseInt(hourVal, 10);
+  if (isNaN(hh)) return String(hourVal);
+  if (hh < 12) return hh + ':00 صباحاً';
+  if (hh === 12) return '12:00 ظهراً';
+  return (hh - 12) + ':00 مساءً';
+}
+
+/**
+ * "14:00" → "14:00 - 15:00"
+ */
+function hourRange(hourVal) {
+  var hh = parseInt(hourVal, 10);
+  if (isNaN(hh) || hh < 0 || hh > 23) return String(hourVal);
+  return hourVal + ' - ' + hourValue(hh + 1);
+}
+
+/**
+ * هل النص ساعة صالحة ضمن دوام العيادة؟
+ */
+function isValidHour(hourVal) {
+  if (!hourVal || typeof hourVal !== 'string') return false;
+  var m = hourVal.match(/^(\d{1,2}):00$/);
+  if (!m) return false;
+  var h = parseInt(m[1], 10);
+  return h >= CONFIG.OPEN_HOUR && h < CONFIG.CLOSE_HOUR;
+}
 
 /**
  * الحصول على ورقة الحجوزات وتهيئتها بالترويسات إن كانت جديدة
@@ -38,7 +85,7 @@ function getOrCreateSheet() {
       'رقم الهاتف',
       'الخدمة المطلوبة',
       'تاريخ الحجز',
-      'الفترة',
+      'الساعة',
       'ملاحظات',
       'المصدر',
       'الحالة',
@@ -62,10 +109,17 @@ function formatDateStr(dateObj) {
 }
 
 /**
- * الحصول على تاريخ اليوم بنسق YYYY-MM-DD
+ * الحصول على تاريخ اليوم بنسق YYYY-MM-DD (حسب توقيت العيادة)
  */
 function getTodayStr() {
   return formatDateStr(new Date());
+}
+
+/**
+ * ساعة الآن (0-23) حسب توقيت العيادة
+ */
+function getCurrentHour() {
+  return parseInt(Utilities.formatDate(new Date(), CONFIG.TIMEZONE, 'HH'), 10);
 }
 
 /**
@@ -98,8 +152,17 @@ function isFriday(dateStr) {
 }
 
 /**
+ * هل الساعة بدأت أو انتهت اليوم؟
+ */
+function isHourPast(dateStr, hourVal) {
+  if (dateStr !== getTodayStr()) return false;
+  return parseInt(hourVal, 10) <= getCurrentHour();
+}
+
+/**
  * قراءة خريطة الحجوزات الحالية من جدول البيانات
- * ترجع كائناً بصيغة { "YYYY-MM-DD|فترة": count }
+ * ترجع كائناً بصيغة { "YYYY-MM-DD|HH:00": count }
+ * ملاحظة: الحجوزات القديمة (صباحية/مسائية) لا تتقاطع مع مفاتيح الساعات
  */
 function getTakenMap(sheet) {
   sheet = sheet || getOrCreateSheet();
@@ -110,13 +173,13 @@ function getTakenMap(sheet) {
     return taken;
   }
 
-  // قراءة الأعمدة: التاريخ (عمود 5)، الفترة (عمود 6)، الحالة (عمود 9)
+  // قراءة الأعمدة: التاريخ (عمود 5)، الساعة (عمود 6)، الحالة (عمود 9)
   var data = sheet.getRange(2, 1, lastRow - 1, 10).getValues();
 
   for (var i = 0; i < data.length; i++) {
     var row = data[i];
     var dateVal = row[4];
-    var periodVal = String(row[5] || '').trim();
+    var hourVal = String(row[5] || '').trim();
     var statusVal = String(row[8] || '').trim();
 
     // تجاهل المواعيد الملغاة
@@ -131,8 +194,10 @@ function getTakenMap(sheet) {
       dateStr = dateVal.trim();
     }
 
-    if (dateStr && periodVal) {
-      var key = dateStr + '|' + periodVal;
+    if (dateStr && hourVal) {
+      // القيمة المخزنة "14:00 - 15:00" → المفتاح على بداية الساعة "14:00"
+      var startHour = hourVal.split(' - ')[0].trim();
+      var key = dateStr + '|' + startHour;
       taken[key] = (taken[key] || 0) + 1;
     }
   }
@@ -141,53 +206,81 @@ function getTakenMap(sheet) {
 }
 
 /**
- * إيجاد 3 مواعيد بديلة ذكية عند امتلاء الموعد أو مصادفة عطلة
+ * عدد الحجوزات في ساعة معينة
  */
-function findAlternatives(startDateStr, preferredPeriod, takenMap, count) {
+function getHourCount(takenMap, dateStr, hourVal) {
+  var key = dateStr + '|' + hourVal;
+  return takenMap[key] ? parseInt(takenMap[key], 10) || 0 : 0;
+}
+
+/**
+ * الساعات الشاغرة في يوم معيّن (مع استبعاد ساعات اليوم المنقضية)
+ */
+function freeHoursForDate(takenMap, dateStr) {
+  var free = [];
+  var hours = getBookingHours();
+  for (var i = 0; i < hours.length; i++) {
+    var hr = hours[i];
+    if (getHourCount(takenMap, dateStr, hr) < CONFIG.MAX_PER_HOUR && !isHourPast(dateStr, hr)) {
+      free.push(hr);
+    }
+  }
+  return free;
+}
+
+/**
+ * إيجاد مواعيد بديلة ذكية عند امتلاء الساعة أو مصادفة عطلة:
+ * ساعات لاحقة في نفس اليوم أولاً، ثم أقرب الأيام التالية
+ */
+function findAlternatives(startDateStr, preferredHour, takenMap, count) {
   count = count || 3;
   takenMap = takenMap || {};
   var list = [];
 
-  var startObj = parseDateString(startDateStr);
   var todayObj = parseDateString(getTodayStr());
+  var cur = parseDateString(startDateStr);
+  if (!cur || (todayObj && cur < todayObj)) {
+    cur = new Date(todayObj.getTime());
+  }
 
-  var cur = (startObj && startObj >= todayObj) ? new Date(startObj.getTime()) : new Date(todayObj.getTime());
+  // 1) ساعات شاغرة لاحقة في نفس اليوم
+  var sameDay = freeHoursForDate(takenMap, formatDateStr(cur));
+  for (var s = 0; s < sameDay.length && list.length < count; s++) {
+    if (!preferredHour || sameDay[s] > preferredHour) {
+      list.push(makeAlt(formatDateStr(cur), sameDay[s]));
+    }
+  }
+
+  // 2) أقرب الأيام التالية (تجاوز الجمعة)
   var attempts = 0;
-
-  var candidatePeriods = (preferredPeriod === 'مسائية')
-    ? ['مسائية', 'صباحية']
-    : (preferredPeriod === 'صباحية' ? ['صباحية', 'مسائية'] : ['صباحية', 'مسائية']);
-
   while (list.length < count && attempts < 35) {
     attempts++;
+    cur.setDate(cur.getDate() + 1);
     var ds = formatDateStr(cur);
     var dayIndex = cur.getDay();
 
-    // استبعاد يوم الجمعة (5)
-    if (dayIndex !== 5) {
-      for (var p = 0; p < candidatePeriods.length; p++) {
-        var per = candidatePeriods[p];
-        var key = ds + '|' + per;
-        var curCount = takenMap[key] || 0;
+    if (dayIndex === 5) continue; // الجمعة عطلة
 
-        if (curCount < CONFIG.MAX_PER_SLOT) {
-          list.push({
-            date: ds,
-            period: per,
-            dayName: DAY_NAMES_AR[dayIndex],
-            label: DAY_NAMES_AR[dayIndex] + ' ' + ds + ' (' + per + ')'
-          });
-          if (list.length >= count) break;
-        }
-      }
+    var dayFree = freeHoursForDate(takenMap, ds);
+    for (var j = 0; j < dayFree.length && list.length < count; j++) {
+      list.push(makeAlt(ds, dayFree[j]));
     }
-    cur.setDate(cur.getDate() + 1);
   }
   return list;
 }
 
+function makeAlt(dateStr, hourVal) {
+  var d = parseDateString(dateStr);
+  var dayName = d ? DAY_NAMES_AR[d.getDay()] : '';
+  return {
+    date: dateStr,
+    hour: hourVal,
+    label: dayName + ' ' + dateStr + ' — ' + hourLabel(hourVal)
+  };
+}
+
 /**
- * إنشاء حدث في تقويم جوجل
+ * إنشاء حدث في تقويم جوجل (مدة الموعد: ساعة واحدة)
  */
 function createCalendarEvent(booking) {
   try {
@@ -197,13 +290,13 @@ function createCalendarEvent(booking) {
     var d = parseDateString(booking.date);
     if (!d) return '';
 
-    var startHour = booking.period === 'مسائية' ? CONFIG.EVENING_HOUR : CONFIG.MORNING_HOUR;
-    var duration = booking.period === 'مسائية' ? CONFIG.EVENING_DURATION_HOURS : CONFIG.MORNING_DURATION_HOURS;
+    var startHour = parseInt(booking.hour, 10);
+    if (isNaN(startHour)) return '';
 
     var startTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), startHour, 0, 0);
-    var endTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), startHour + duration, 0, 0);
+    var endTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), startHour + 1, 0, 0);
 
-    var title = '🦷 موعد: ' + booking.name + ' — ' + booking.service + ' (' + booking.period + ')';
+    var title = '🦷 موعد: ' + booking.name + ' — ' + booking.service + ' (' + hourLabel(booking.hour) + ')';
     var desc =
       'تفاصيل الحجز من موقع العيادة:\n' +
       '────────────────────────────\n' +
@@ -211,7 +304,7 @@ function createCalendarEvent(booking) {
       'الهاتف: ' + booking.phone + '\n' +
       'الخدمة: ' + booking.service + '\n' +
       'التاريخ: ' + booking.date + '\n' +
-      'الفترة: ' + booking.period + '\n' +
+      'الساعة: ' + hourRange(booking.hour) + ' (' + hourLabel(booking.hour) + ')\n' +
       'ملاحظات: ' + (booking.notes || '—') + '\n' +
       'المصدر: ' + (booking.source || 'الموقع الإلكتروني');
 
@@ -233,14 +326,14 @@ function createCalendarEvent(booking) {
 function sendNotificationEmail(booking) {
   if (!CONFIG.NOTIFICATION_EMAIL) return;
   try {
-    var subject = '🦷 حجز جديد: ' + booking.name + ' (' + booking.date + ' - ' + booking.period + ')';
+    var subject = '🦷 حجز جديد: ' + booking.name + ' (' + booking.date + ' - ' + hourLabel(booking.hour) + ')';
     var body =
       'وصل حجز موعد جديد عبر موقع العيادة:\n\n' +
       '• الاسم: ' + booking.name + '\n' +
       '• الهاتف: ' + booking.phone + '\n' +
       '• الخدمة: ' + booking.service + '\n' +
       '• التاريخ: ' + booking.date + '\n' +
-      '• الفترة: ' + booking.period + '\n' +
+      '• الساعة: ' + hourRange(booking.hour) + ' (' + hourLabel(booking.hour) + ')\n' +
       '• ملاحظات: ' + booking.notes + '\n\n' +
       'تم تسجيل الموعد بنجاح في جدول الحجوزات وتقويم العيادة.';
     MailApp.sendEmail(CONFIG.NOTIFICATION_EMAIL, subject, body);
@@ -267,8 +360,13 @@ function doGet(e) {
 
     var response = {
       ok: true,
-      max: CONFIG.MAX_PER_SLOT,
-      periods: CONFIG.PERIODS,
+      mode: 'hourly',
+      max: CONFIG.MAX_PER_HOUR,
+      openHour: hourValue(CONFIG.OPEN_HOUR),
+      closeHour: hourValue(CONFIG.CLOSE_HOUR),
+      hours: getBookingHours(),
+      today: getTodayStr(),
+      nowHour: getCurrentHour(),
       closed: [], // يمكن تخصيص تواريخ إضافية هنا
       taken: takenMap,
       timestamp: new Date().getTime()
@@ -288,7 +386,7 @@ function doGet(e) {
  */
 function doPost(e) {
   var lock = LockService.getScriptLock();
-  
+
   // محاولة الحصول على القفل لمدة تصل إلى 30 ثانية لمنع تعارض الحجوزات المتزامنة
   try {
     lock.waitLock(30000);
@@ -321,7 +419,7 @@ function doPost(e) {
     var phone = String(data.phone || '').trim();
     var service = String(data.service || 'فحص وتشخيص عام').trim();
     var date = String(data.date || '').trim();
-    var period = String(data.period || 'صباحية').trim();
+    var hour = String(data.hour || data.period || '').trim();
     var notes = String(data.notes || '').trim();
     var source = String(data.source || 'موقع عيادة أوراس').trim();
 
@@ -345,7 +443,7 @@ function doPost(e) {
 
     // 1. التحقق من التواريخ السابقة
     if (date < todayStr) {
-      var altsPast = findAlternatives(todayStr, period, takenMap, 3);
+      var altsPast = findAlternatives(todayStr, hour, takenMap, 3);
       lock.releaseLock();
       return jsonResponse({
         ok: false,
@@ -357,7 +455,7 @@ function doPost(e) {
 
     // 2. التحقق من يوم الجمعة (عطلة رسمية)
     if (isFriday(date)) {
-      var altsFri = findAlternatives(date, period, takenMap, 3);
+      var altsFri = findAlternatives(date, hour, takenMap, 3);
       lock.releaseLock();
       return jsonResponse({
         ok: false,
@@ -367,48 +465,57 @@ function doPost(e) {
       });
     }
 
-    // 3. تحديد الفترة وتدقيق السعة
-    var assignedPeriod = period;
-    if (period === 'أي فترة تناسبكم' || period === 'أي فترة') {
-      var mornCount = takenMap[date + '|صباحية'] || 0;
-      var eveCount = takenMap[date + '|مسائية'] || 0;
-
-      if (mornCount < CONFIG.MAX_PER_SLOT) {
-        assignedPeriod = 'صباحية';
-      } else if (eveCount < CONFIG.MAX_PER_SLOT) {
-        assignedPeriod = 'مسائية';
-      } else {
-        var altsAny = findAlternatives(date, 'صباحية', takenMap, 3);
+    // 3. تدقيق الساعة
+    var assignedHour = hour;
+    if (!isValidHour(assignedHour)) {
+      // إن لم تُحدَّد ساعة صالحة نختار أول ساعة متاحة في ذلك اليوم
+      var freeOfDay = freeHoursForDate(takenMap, date);
+      if (freeOfDay.length === 0) {
+        var altsNoHour = findAlternatives(date, '', takenMap, 3);
         lock.releaseLock();
         return jsonResponse({
           ok: false,
           conflict: true,
-          reason: 'جميع فترات هذا اليوم ممتلئة بالكامل.',
-          alternatives: altsAny
+          reason: 'جميع ساعات هذا اليوم ممتلئة أو منتهية.',
+          alternatives: altsNoHour
         });
       }
-    } else {
-      var slotCount = takenMap[date + '|' + period] || 0;
-      if (slotCount >= CONFIG.MAX_PER_SLOT) {
-        var altsSlot = findAlternatives(date, period, takenMap, 3);
-        lock.releaseLock();
-        return jsonResponse({
-          ok: false,
-          conflict: true,
-          reason: 'الفترة الـ' + period + ' ممتلئة بالكامل في تاريخ ' + date + '.',
-          alternatives: altsSlot
-        });
-      }
+      assignedHour = freeOfDay[0];
     }
 
-    // 4. تسجيل الحجز في جدول البيانات
+    // 4. ساعة اليوم بدأت بالفعل
+    if (isHourPast(date, assignedHour)) {
+      var altsPastHour = findAlternatives(date, assignedHour, takenMap, 3);
+      lock.releaseLock();
+      return jsonResponse({
+        ok: false,
+        conflict: true,
+        reason: 'ساعة ' + hourLabel(assignedHour) + ' بدأت أو انتهت بالفعل اليوم، اختر ساعة قادمة.',
+        alternatives: altsPastHour
+      });
+    }
+
+    // 5. التحقق من سعة الساعة الواحدة
+    var hourCount = getHourCount(takenMap, date, assignedHour);
+    if (hourCount >= CONFIG.MAX_PER_HOUR) {
+      var altsFull = findAlternatives(date, assignedHour, takenMap, 3);
+      lock.releaseLock();
+      return jsonResponse({
+        ok: false,
+        conflict: true,
+        reason: 'ساعة ' + hourLabel(assignedHour) + ' يوم ' + date + ' ممتلئة بالكامل.',
+        alternatives: altsFull
+      });
+    }
+
+    // 6. تسجيل الحجز في جدول البيانات
     var timestamp = new Date();
     var bookingRecord = {
       name: name,
       phone: phone,
       service: service,
       date: date,
-      period: assignedPeriod,
+      hour: assignedHour,
       notes: notes,
       source: source
     };
@@ -422,7 +529,7 @@ function doPost(e) {
       phone,
       service,
       date,
-      assignedPeriod,
+      hourRange(assignedHour),
       notes,
       source,
       'مؤكد',
@@ -443,7 +550,9 @@ function doPost(e) {
       message: 'تم تسجيل الحجز بنجاح',
       name: name,
       date: date,
-      period: assignedPeriod,
+      hour: assignedHour,
+      hourLabel: hourLabel(assignedHour),
+      hourRange: hourRange(assignedHour),
       service: service
     });
 
@@ -462,7 +571,7 @@ function doPost(e) {
  * دالة تجريبية لاختبار المنطق البرمجي داخل Apps Script
  */
 function testBooking() {
-  Logger.log('=== بدء اختبار نظام الحجز ومنع التعارض ===');
+  Logger.log('=== بدء اختبار نظام الحجز بالساعة ومنع التعارض ===');
 
   // 1. اختبار جلب التوفر
   var availRes = doGet({ parameter: { action: 'availability' } });
@@ -477,43 +586,38 @@ function testBooking() {
         phone: '0912345678',
         service: 'فحص وتشخيص عام',
         date: testDate,
-        period: 'صباحية',
-        notes: 'فحص تجريبي',
-        source: 'اختبار برمجي'
+        hour: '10:00'
       })
     }
   });
-  Logger.log('2. نتيجة حجز سليم: ' + postSuccess.getContent());
+  Logger.log('2. اختبار حجز ساعة 10:00 صباحاً: ' + postSuccess.getContent());
 
   // 3. اختبار رفض حجز يوم الجمعة
   var fridayDate = '2026-09-04'; // الجمعة
   var postFriday = doPost({
     postData: {
       contents: JSON.stringify({
-        name: 'تجربة يوم الجمعة',
+        name: 'تجربة جمعة',
         phone: '0912345678',
-        service: 'تنظيف وتلميع',
         date: fridayDate,
-        period: 'صباحية',
-        notes: 'يجب أن يُرفض'
+        hour: '10:00'
       })
     }
   });
-  Logger.log('3. نتيجة حجز الجمعة (مرفوض مع بدائل): ' + postFriday.getContent());
+  Logger.log('3. اختبار رفض الجمعة: ' + postFriday.getContent());
 
   // 4. اختبار رفض تاريخ ماضٍ
   var postPast = doPost({
     postData: {
       contents: JSON.stringify({
-        name: 'تجربة تاريخ ماض',
+        name: 'تجربة تاريخ ماضٍ',
         phone: '0912345678',
-        service: 'تبييض الأسنان',
-        date: '2020-01-01',
-        period: 'صباحية'
+        date: '2025-01-01',
+        hour: '10:00'
       })
     }
   });
-  Logger.log('4. نتيجة حجز تاريخ ماض (مرفوض مع بدائل): ' + postPast.getContent());
+  Logger.log('4. اختبار رفض تاريخ ماضٍ: ' + postPast.getContent());
 
-  Logger.log('=== اكتمل الاختبار بنجاح ===');
+  Logger.log('=== انتهى الاختبار — راجع ورقة الحجوزات ثم احذف صفوف التجربة ===');
 }
