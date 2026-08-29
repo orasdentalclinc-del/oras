@@ -180,8 +180,7 @@
       '/data/query/' +
       encodeURIComponent(CONFIG.dataset) +
       '?perspective=published&query=' +
-      encodeURIComponent(QUERY) +
-      '&t=' + Date.now()
+      encodeURIComponent(QUERY) 
     return fetch(url, {headers: {Accept: 'application/json'}, cache: 'no-store'})
       .then(function (r) {
         if (!r.ok) {
