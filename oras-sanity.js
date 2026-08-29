@@ -180,14 +180,123 @@
       '/data/query/' +
       encodeURIComponent(CONFIG.dataset) +
       '?perspective=published&query=' +
-      encodeURIComponent(QUERY)
+      encodeURIComponent(QUERY) +
+      '&t=' + Date.now()
     return fetch(url, {headers: {Accept: 'application/json'}, cache: 'no-store'})
       .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status)
+        if (!r.ok) {
+          var e = new Error('HTTP ' + r.status)
+          e.status = r.status
+          throw e
+        }
         return r.json()
       })
       .then(function (j) {
         return j.result || {}
+      })
+  }
+
+  /* ---------- شريط تنبيه عند فشل الجلب ----------
+   * بدل الفشل الصامت: يظهر سبب واضح على الصفحة نفسها
+   * (CORS / قاعدة البيانات الخاصة / الشبكة) مع زر إعادة المحاولة.
+   */
+  var netBanner = null
+  var netDismissed = false
+
+  function hideNetBanner() {
+    if (netBanner && netBanner.parentNode) netBanner.parentNode.removeChild(netBanner)
+    netBanner = null
+    document.documentElement.removeAttribute('data-oras-cms-error')
+  }
+
+  function netReason(err) {
+    var s = err && err.status
+    if (s === 401 || s === 403)
+      return 'نطاق الموقع غير مضاف في إعدادات CORS بالمشروع، أو أن قاعدة البيانات ليست عامة (Private).'
+    if (s === 404) return 'معرف المشروع (projectId) أو الـ dataset غير صحيح.'
+    return 'تعذر الوصول إلى خوادم Sanity — مشكلة شبكة/إنترنت أو حجب CORS.'
+  }
+
+  function showNetBanner(err) {
+    var detail = (err && err.message) || 'خطأ غير معروف'
+    console.warn('تعذر جلب المحتوى من لوحة التحكم — يُعرض المحتوى الافتراضي:', detail)
+    if (netDismissed) return
+    document.documentElement.setAttribute('data-oras-cms-error', '1')
+    if (!netBanner) {
+      var st = document.createElement('style')
+      st.appendChild(
+        document.createTextNode(
+          '.oras-net{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:300;width:min(600px,calc(100vw - 24px));' +
+            'background:#3D3524;color:#FFFDF6;border:1px solid #C9A227;border-radius:16px;padding:14px 18px;direction:rtl;text-align:right;' +
+            "box-shadow:0 16px 48px rgba(0,0,0,.4);font:700 .85rem/1.8 system-ui,'Segoe UI',sans-serif}" +
+            '.oras-net b{color:#F3D477}.oras-net .oras-net-x{float:left;background:none;border:0;color:#FFFDF6;font-size:1.1rem;font-weight:900;cursor:pointer;opacity:.75;padding:0 4px}' +
+            '.oras-net .oras-net-x:hover{opacity:1}.oras-net small{display:block;opacity:.65;font-weight:400;direction:ltr;text-align:left}' +
+            '.oras-net button.oras-net-retry{margin-top:8px;background:#C9A227;border:0;color:#3D3524;font:900 .82rem system-ui;border-radius:999px;padding:6px 16px;cursor:pointer}' +
+            '.oras-net button.oras-net-retry:hover{background:#F3D477}'
+        )
+      )
+      document.head.appendChild(st)
+
+      netBanner = make('div', 'oras-net')
+      var x = make('button', 'oras-net-x', '✕')
+      x.setAttribute('type', 'button')
+      x.setAttribute('aria-label', 'إغلاق التنبيه')
+      x.addEventListener('click', function () {
+        netDismissed = true
+        hideNetBanner()
+      })
+      var msg = make('div', 'oras-net-msg')
+      var retry = make('button', 'oras-net-retry', 'إعادة المحاولة')
+      retry.setAttribute('type', 'button')
+      retry.addEventListener('click', function () {
+        if (msg) msg.textContent = '… جارٍ إعادة المحاولة'
+        load()
+      })
+      netBanner.appendChild(x)
+      netBanner.appendChild(msg)
+      netBanner.appendChild(retry)
+      ;(document.body || document.documentElement).appendChild(netBanner)
+    }
+    var m = netBanner.querySelector('.oras-net-msg')
+    if (m) {
+      clear(m)
+      m.appendChild(
+        document.createTextNode('⚠️ الموقع يعرض المحتوى الافتراضي — لم تُحمَّل تعديلات لوحة التحكم. ')
+      )
+      var b = make('b', null, netReason(err))
+      m.appendChild(b)
+      var hint = make(
+        'div',
+        null,
+        'الحل: من sanity.io/manage → API → CORS origins أضف https://orasdentalclinic.com و https://www.orasdentalclinic.com — وتأكد من الضغط على «نشر» داخل اللوحة.'
+      )
+      hint.style.marginTop = '6px'
+      m.appendChild(hint)
+      var d = make('small', null, detail)
+      m.appendChild(d)
+    }
+  }
+
+  var retriedOnce = false
+
+  function load() {
+    return fetchContent()
+      .then(function (data) {
+        hideNetBanner()
+        retriedOnce = false
+        apply(data)
+      })
+      .catch(function (err) {
+        showNetBanner(err)
+        /* محاولة تلقائية واحدة عند فشل الشبكة (تقطع الإنترنت الشائع) */
+        if (!retriedOnce && (!err || !err.status)) {
+          retriedOnce = true
+          setTimeout(function () {
+            load()
+          }, 6000)
+        } else {
+          retriedOnce = false
+        }
       })
   }
 
@@ -793,14 +902,6 @@
     renderDoctors(data.doctors || [])
     renderPartners(data.partners || [])
     document.documentElement.setAttribute('data-oras-cms', 'ready')
-  }
-
-  function load() {
-    return fetchContent()
-      .then(apply)
-      .catch(function (err) {
-        console.warn('تعذر جلب المحتوى من لوحة التحكم — يُعرض المحتوى الافتراضي:', err.message)
-      })
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load)
