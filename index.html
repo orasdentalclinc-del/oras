@@ -472,6 +472,21 @@ section{overflow:hidden}
 }
 section > .container{position:relative;z-index:1}
 
+/* ===== فواصل بين خلفيات الأقسام المتتالية ===== */
+section + section::before{
+  content:''; position:absolute; top:0; inset-inline:0; z-index:3; height:5px;
+  background:linear-gradient(90deg, transparent, rgba(201,162,39,.48) 18%, rgba(201,162,39,.78) 50%, rgba(201,162,39,.48) 82%, transparent);
+  border-radius:999px;
+  pointer-events:none;
+}
+section + section::after{
+  content:''; position:absolute; top:13px; left:50%; z-index:3;
+  width:16px; height:16px; transform:translateX(-50%) rotate(45deg);
+  background:var(--grad-gold); border-radius:4px;
+  box-shadow:0 4px 12px rgba(201,162,39,.5);
+  pointer-events:none;
+}
+
 /* نجوم الاستبيان — بنفس طريقة نجوم التقييم */
 .star-picker.sv-stars{flex-direction:row-reverse;margin-top:2px}
 .star-picker.sv-stars button{font-size:1.75rem}
