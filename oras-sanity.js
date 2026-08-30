@@ -146,7 +146,7 @@
     'clinicName, tagline, logo, heroTitle, heroSubtitle, heroImage, heroHighlights,',
     'aboutTitle, aboutBody, aboutImage, stats,',
     'phone, whatsapp, email, addressLine, mapsUrl, mapEmbedUrl, openingHours, socialLinks,',
-    'sectionHeadings, seo, surveyQuestions',
+    'sectionBackgrounds, sectionHeadings, seo, surveyQuestions',
     '},',
     '"services": *[_type == "service" && isActive != false]|order(order asc){',
     '_id, title, summary, icon, showInBookingForm,',
@@ -476,35 +476,49 @@
       setText('#mapBarLine', bar.join(' • '))
     }
 
-    /* روابط التواصل الاجتماعي */
+    /* روابط التواصل الاجتماعي — تملأ أيقونات الفوتر وأزرار القائمة العائمة */
     if (Array.isArray(s.socialLinks) && s.socialLinks.length) {
-      var anchors = $$('.socials a').filter(function (a) {
-        return a.id !== 'footWa'
-      })
+      var anchors = $$('.socials a')
+        .filter(function (a) {
+          return a.id !== 'footWa'
+        })
+        .concat($$('#fabFb, #fabIg, #fabTt'))
       var used = 0
       s.socialLinks.forEach(function (l) {
         var href = safeUrl(l && l.url)
         if (!href) return
         var label = String((l && l.label) || '')
-        var target = null
-        anchors.some(function (a) {
+        var matched = false
+        anchors.forEach(function (a) {
           var aria = a.getAttribute('aria-label') || ''
           if (label && aria && (label.indexOf(aria) > -1 || aria.indexOf(label) > -1)) {
-            target = a
-            return true
+            a.setAttribute('href', href)
+            a.setAttribute('target', '_blank')
+            a.setAttribute('rel', 'noopener')
+            matched = true
           }
-          return false
         })
-        if (!target) target = anchors[used]
-        if (target) {
-          target.setAttribute('href', href)
-          target.setAttribute('target', '_blank')
-          target.setAttribute('rel', 'noopener')
-          if (label) target.setAttribute('aria-label', label)
-          used = anchors.indexOf(target) + 1
+        if (!matched) {
+          var t = anchors[used]
+          if (t) {
+            t.setAttribute('href', href)
+            t.setAttribute('target', '_blank')
+            t.setAttribute('rel', 'noopener')
+            if (label) t.setAttribute('aria-label', label)
+          }
         }
+        used += 1
       })
     }
+
+    /* خلفيات الأقسام — تُستبدل الصورة الافتراضية بصورة لوحة التحكم */
+    var bgs = s.sectionBackgrounds || {}
+    var bgKeys = ['hero', 'about', 'services', 'cases', 'gallery', 'reviews', 'doctors', 'partners', 'booking', 'location']
+    bgKeys.forEach(function (k) {
+      var u = imageUrl(bgs[k], 1600, 900, true)
+      var el = $('.sec-bg[data-bg="' + k + '"]')
+      if (u && el) el.style.backgroundImage = 'url("' + u + '")'
+    })
 
     /* عناوين الأقسام */
     var h = s.sectionHeadings || {}
