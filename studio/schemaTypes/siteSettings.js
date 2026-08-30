@@ -14,7 +14,8 @@ export default {
     {name: 'brand', title: 'الهوية', default: true},
     {name: 'hero', title: 'الواجهة'},
     {name: 'about', title: 'من نحن'},
-    {name: 'contact', title: 'الاتصال والموقع'},
+    {name: 'contact', title: 'الاتصال ومواقع التواصل'},
+    {name: 'backgrounds', title: 'خلفيات الأقسام'},
     {name: 'survey', title: 'استبيان الزوار'},
     {name: 'headings', title: 'عناوين الأقسام'},
     {name: 'seo', title: 'SEO'},
@@ -145,20 +146,118 @@ export default {
     },
     {
       name: 'socialLinks',
-      title: 'روابط التواصل الاجتماعي (التذييل)',
+      title: 'روابط مواقع التواصل الاجتماعي',
+      description:
+        'تظهر هذه الروابط في أيقونات التذييل وفي القائمة العائمة (فيسبوك، انستغرام، تيك توك). ملاحظة: واتساب يُدار من حقل «رقم واتساب»، والاتصال المباشر من حقل «رقم الهاتف» أعلاه.',
       type: 'array',
       of: [
         {
           type: 'object',
           name: 'socialLink',
           fields: [
-            {name: 'label', title: 'المنصة', type: 'string', description: 'مثال: فيسبوك'},
-            {name: 'url', title: 'الرابط', type: 'url'},
+            {
+              name: 'label',
+              title: 'المنصة',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'فيسبوك', value: 'فيسبوك'},
+                  {title: 'انستغرام', value: 'انستغرام'},
+                  {title: 'تيك توك', value: 'تيك توك'},
+                  {title: 'يوتيوب', value: 'يوتيوب'},
+                  {title: 'إكس (تويتر)', value: 'تويتر'},
+                  {title: 'سناب شات', value: 'سناب شات'},
+                  {title: 'لينكد إن', value: 'لينكد إن'},
+                  {title: 'تيليجرام', value: 'تيليجرام'},
+                ],
+                layout: 'dropdown',
+              },
+              validation: (R) => R.required(),
+            },
+            {
+              name: 'url',
+              title: 'الرابط',
+              type: 'url',
+              validation: (R) => R.required(),
+            },
           ],
           preview: {select: {title: 'label', subtitle: 'url'}},
         },
       ],
       group: 'contact',
+    },
+
+    // ===== خلفيات الأقسام =====
+    {
+      name: 'sectionBackgrounds',
+      title: 'صور خلفية الأقسام',
+      description:
+        'صورة خلفية اختيارية لكل قسم من أقسام الموقع. تُعرض خلف المحتوى مع ضبابية خفيفة وطبقة كريمية شفافة لإبقاء النصوص مقروءة. أي قسم يُترك فارغاً يستخدم الصورة الافتراضية. يُفضّل صور أفقية عالية الجودة (مثلاً 1600×900) بدون أشخاص.',
+      type: 'object',
+      group: 'backgrounds',
+      options: {collapsible: true, collapsed: false},
+      fields: [
+        {
+          name: 'hero',
+          title: 'الرئيسية (الواجهة)',
+          type: 'image',
+          options: {hotspot: true},
+        },
+        {
+          name: 'about',
+          title: 'من نحن',
+          type: 'image',
+          options: {hotspot: true},
+        },
+        {
+          name: 'services',
+          title: 'خدماتنا',
+          type: 'image',
+          options: {hotspot: true},
+        },
+        {
+          name: 'cases',
+          title: 'الحالات',
+          type: 'image',
+          options: {hotspot: true},
+        },
+        {
+          name: 'gallery',
+          title: 'نشاط العيادة',
+          type: 'image',
+          options: {hotspot: true},
+        },
+        {
+          name: 'reviews',
+          title: 'آراء المرضى',
+          type: 'image',
+          options: {hotspot: true},
+        },
+        {
+          name: 'doctors',
+          title: 'الأطباء',
+          type: 'image',
+          options: {hotspot: true},
+        },
+        {
+          name: 'partners',
+          title: 'الشراكات',
+          type: 'image',
+          options: {hotspot: true},
+        },
+        {
+          name: 'booking',
+          title: 'الحجز',
+          type: 'image',
+          options: {hotspot: true},
+        },
+        {
+          name: 'location',
+          title: 'الموقع',
+          type: 'image',
+          options: {hotspot: true},
+        },
+      ],
     },
 
     // ===== استبيان الزوار (5 أسئلة) =====
