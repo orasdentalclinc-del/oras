@@ -59,21 +59,43 @@
     )
 
   function imageUrl(source, w, h, crop) {
-    var ref = source && source.asset && (source.asset._ref || source.asset._id)
+    if (!source) return ''
+    /* URL جاهز من asset->url أو حقل نصي */
+    if (typeof source === 'string') {
+      if (/^https?:\/\//i.test(source)) return source
+      return ''
+    }
+    var asset = source.asset || source
+    if (asset && typeof asset.url === 'string' && asset.url) {
+      var ready = asset.url
+      var join = ready.indexOf('?') >= 0 ? '&' : '?'
+      ready += join + 'auto=format&q=80'
+      if (w) ready += '&w=' + w
+      if (h) ready += '&h=' + h
+      if (crop) ready += '&fit=crop&crop=entropy'
+      else ready += '&fit=max'
+      return ready
+    }
+    var ref = asset && (asset._ref || asset._id)
     if (!ref) return ''
     var p = String(ref).split('-')
+    /* image-<id>-<WxH>-<ext>  — الامتداد قد يحتوي نقاطاً نادرة؛ نأخذ آخر جزء */
     if (p.length < 4) return ''
+    var ext = p[p.length - 1]
+    var dims = p[p.length - 2]
+    var id = p.slice(1, p.length - 2).join('-')
+    if (!id || !dims || !ext) return ''
     var url =
       'https://cdn.sanity.io/images/' +
       encodeURIComponent(CONFIG.projectId) +
       '/' +
       encodeURIComponent(CONFIG.dataset) +
       '/' +
-      p[1] +
+      id +
       '-' +
-      p[2] +
+      dims +
       '.' +
-      p[3] +
+      ext +
       '?auto=format&q=80'
     if (w) url += '&w=' + w
     if (h) url += '&h=' + h
@@ -146,8 +168,9 @@
       var span = make('span', 'ic')
       var im = document.createElement('img')
       im.setAttribute('loading', 'lazy')
+      im.setAttribute('decoding', 'async')
       im.setAttribute('src', u)
-      im.setAttribute('alt', '')
+      im.setAttribute('alt', (s && s.title) || '')
       span.appendChild(im)
       return span
     }
@@ -164,7 +187,7 @@
     'sectionBackgrounds, sectionHeadings, seo, surveyQuestions',
     '},',
       '"services": *[_type == "service" && isActive != false]|order(order asc){',
-      '_id, title, summary, icon, image, showInBookingForm,',
+      '_id, title, summary, icon, image{..., asset->}, showInBookingForm,',
     'price, priceNote, duration, sessionsCount, details, includes',
     '},',
     '"cases": *[_type == "caseStudy" && isPublished == true]|order(order asc){',
@@ -716,7 +739,7 @@
           blocksToParagraphs(s.details).length
 
         var card = make('div', 'srv reveal in')
-        card.appendChild(iconSpan(s.icon))
+        card.appendChild(iconBox(s))
         card.appendChild(make('h3', null, s.title))
         card.appendChild(make('p', null, s.summary))
         if (s.price) card.appendChild(make('span', 'srv-price', s.price))
