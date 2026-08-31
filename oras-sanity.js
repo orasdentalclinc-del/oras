@@ -950,7 +950,8 @@
   function apply(data) {
     renderSettings(data.settings)
 
-    /* شرائح الواجهة: شرائح اللوحة المفعّلة إن وُجدت، وإلا صورة الواجهة + صور المعرض */
+    /* شرائح الواجهة: شرائح اللوحة المفعّلة، وإن كانت أقل من اثنتين
+       يُكمّلها السلايدر تلقائيًا بصورة الواجهة + صور «نشاط العيادة» (بدون تكرار) */
     var st = data.settings || {}
     var heroSrcs = []
     var heroAlts = []
@@ -961,18 +962,19 @@
         heroAlts.push(sl.alt || (sl.image && sl.image.alt) || '')
       }
     })
-    if (!heroSrcs.length) {
-      var hu = imageUrl(st.heroImage, 900, 1200, true)
-      if (hu) {
-        heroSrcs.push(hu)
-        heroAlts.push((st.heroImage && st.heroImage.alt) || '')
-      }
-      ;(data.gallery || []).forEach(function (g) {
-        var u = imageUrl(g.image, 900, 1200, true)
-        if (u) {
+    if (heroSrcs.length < 2) {
+      var heroUsed = {}
+      for (var hu0 = 0; hu0 < heroSrcs.length; hu0++) heroUsed[heroSrcs[hu0]] = 1
+      var pushHeroSrc = function (u, alt) {
+        if (u && !heroUsed[u]) {
+          heroUsed[u] = 1
           heroSrcs.push(u)
-          heroAlts.push((g.image && g.image.alt) || g.caption || '')
+          heroAlts.push(alt || '')
         }
+      }
+      pushHeroSrc(imageUrl(st.heroImage, 900, 1200, true), (st.heroImage && st.heroImage.alt) || '')
+      ;(data.gallery || []).forEach(function (g) {
+        pushHeroSrc(imageUrl(g.image, 900, 1200, true), (g.image && g.image.alt) || g.caption || '')
       })
     }
     if (heroSrcs.length && window.orasHeroSlider) window.orasHeroSlider.setSlides(heroSrcs, heroAlts)
