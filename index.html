@@ -200,6 +200,38 @@ h1{font-size:clamp(2.1rem,4.6vw,3.4rem);font-weight:900;line-height:1.35;margin-
 }
 .blob-a{width:300px;height:300px;top:-50px;left:-60px}
 .blob-b{width:220px;height:220px;bottom:-40px;right:-40px}
+/* ===== شرائح الواجهة: صور متحركة بالسحب (لمس/ماوس) مع تلاشي الجوانب ===== */
+.hero-slider{position:relative;z-index:2;margin-inline:-10%;cursor:grab;outline-offset:4px}
+.hero-slider.dragging{cursor:grabbing}
+.hero-slider:focus-visible{outline:2px solid var(--gold)}
+.hero-viewport{
+  overflow:hidden;touch-action:pan-y;
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 9%,#000 91%,transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0,#000 9%,#000 91%,transparent 100%);
+}
+.hero-track{display:flex;gap:18px;align-items:stretch;will-change:transform;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
+.hero-slide{flex:0 0 68%;margin:0;opacity:.45;transform:scale(.93);filter:saturate(.85);transition:opacity .5s ease,transform .5s ease,filter .5s ease}
+.hero-slide.is-active{opacity:1;transform:scale(1);filter:none}
+.hero-slide .hero-frame{border-width:8px}
+.hero-slide img{-webkit-user-drag:none;user-select:none}
+.hs-arrow{
+  position:absolute;top:calc(50% - 22px);z-index:6;width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--glass-border);background-color:rgba(255,253,246,.8);background-image:var(--glass-bg);
+  color:var(--gold-ink);display:grid;place-items:center;cursor:pointer;
+  backdrop-filter:blur(10px) saturate(150%);-webkit-backdrop-filter:blur(10px) saturate(150%);
+  box-shadow:var(--glass-shadow-sm);transition:transform .2s ease;
+}
+.hs-arrow:hover{transform:scale(1.08)}
+.hs-prev{right:14px}
+.hs-next{left:14px}
+.hs-dots{position:absolute;bottom:12px;left:0;right:0;z-index:6;display:flex;justify-content:center;gap:8px}
+.hs-dot{width:9px;height:9px;border-radius:999px;border:0;padding:0;background:rgba(168,132,28,.4);cursor:pointer;box-shadow:0 1px 4px rgba(61,53,36,.25);transition:width .3s ease,background .3s ease}
+.hs-dot.is-active{width:26px;background:var(--gold)}
+.hero-slider.single .hs-arrow,.hero-slider.single .hs-dots{display:none}
+@media (prefers-reduced-motion:reduce){
+  .hero-track{transition:none}
+  .hero-slide{transition:none}
+}
 [hidden]{display:none!important}
 .float-card{
   position:absolute;z-index:3;background-color:rgba(255,253,246,.5);background-image:var(--glass-bg);
@@ -687,6 +719,7 @@ section + section::after{
 @media(max-width:1024px){
   .hero-grid{grid-template-columns:1fr;gap:44px}
   .hero-visual{max-width:560px;margin:0 auto}
+  .hero-slider{margin-inline:-6%}
   .hero-frame img{height:440px}
   .fc-1{right:-10px}.fc-2{left:-10px}
   .about-grid{grid-template-columns:1fr;gap:44px}
@@ -732,6 +765,8 @@ section + section::after{
   .sv-opts label{flex:1 1 40%}
   .sv-opts .sv-btn{font-size:.92rem}
   .stats-band{grid-template-columns:1fr 1fr}
+  .hero-slider{margin-inline:-12%}
+  .hs-arrow{width:38px;height:38px;top:calc(50% - 19px)}
   .hero-frame img{height:380px}
   .fc-1,.fc-2{display:none}
   .exp-badge{left:8px;bottom:14px;padding:12px 18px}
@@ -793,7 +828,18 @@ section + section::after{
     <div class="hero-visual">
       <div class="hero-blob blob-a"></div>
       <div class="hero-blob blob-b"></div>
-      <div class="hero-frame"><img data-img="hero" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FBF6E7'/><stop offset='1' stop-color='%23F3E5BF'/></linearGradient></defs><rect width='800' height='600' fill='url%28%23g%29'/><g transform='translate%28272 110%29 scale%284%29'><path d='M32 12c-5 0-6.5 3-10.5 3-5.5 0-8 4-8 9.5 0 10 4.8 15 6.8 25 .9 4.8 7 4.7 7.9-.2.7-3.4 1.6-7 3.8-7s3.1 3.6 3.8 7c.9 4.9 7 5 7.9.2 2-10 6.8-15 6.8-25 0-5.5-2.5-9.5-8-9.5-4 0-5.5-3-10.5-3z' fill='none' stroke='%23C9A227' stroke-opacity='.5' stroke-width='1.3'/></g><text x='400' y='450' text-anchor='middle' font-size='30' font-family='sans-serif' fill='%23A8841C'>%D8%A7%D9%84%D8%B5%D9%88%D8%B1%D8%A9 %D8%AA%D9%8F%D8%B6%D8%A7%D9%81 %D9%85%D9%86 %D9%84%D9%88%D8%AD%D8%A9 %D8%A7%D9%84%D8%AA%D8%AD%D9%83%D9%85</text></svg>" alt="استقبال عيادة أوراس لطب الأسنان"></div>
+      <div class="hero-slider" id="heroSlider" role="region" aria-roledescription="عرض شرائح" aria-label="صور من عيادة أوراس" tabindex="0">
+        <div class="hero-viewport">
+          <div class="hero-track">
+            <figure class="hero-slide is-active"><div class="hero-frame"><img src="images/bg/hero.jpg" alt="استقبال عيادة أوراس لطب الأسنان" draggable="false"></div></figure>
+            <figure class="hero-slide"><div class="hero-frame"><img src="images/bg/about.jpg" alt="غرفة علاج مجهزة في عيادة أوراس" loading="lazy" draggable="false"></div></figure>
+            <figure class="hero-slide"><div class="hero-frame"><img src="images/bg/gallery.jpg" alt="ممر غرف العلاج في عيادة أوراس" loading="lazy" draggable="false"></div></figure>
+          </div>
+        </div>
+        <button type="button" class="hs-arrow hs-prev" aria-label="الصورة السابقة"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button type="button" class="hs-arrow hs-next" aria-label="الصورة التالية"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="hs-dots"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -1538,11 +1584,185 @@ $('#revSubmit').addEventListener('click', () => {
   }, 4200);
 });
 
+/* ═══════════ شرائح الواجهة: سحب باللمس/الماوس + تلاشي الجوانب ═══════════ */
+window.orasHeroSlider = (function () {
+  const root = $('#heroSlider');
+  if (!root) return null;
+  const viewport = $('.hero-viewport', root);
+  const track = $('.hero-track', root);
+  const dotsBox = $('.hs-dots', root);
+  const prevBtn = $('.hs-prev', root);
+  const nextBtn = $('.hs-next', root);
+  const reduceMotion = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false };
+
+  let slides = [], centers = [], dots = [];
+  let index = 0, dragDelta = 0, dragging = false, startX = 0;
+  let autoTimer = null, slideKey = '';
+
+  const canSlide = () => slides.length > 1;
+
+  /* قيمة الإزاحة التي تُوسّط كل شريحة داخل الإطار */
+  function measure() {
+    const vw = viewport.clientWidth || 0;
+    centers = slides.map((s) => {
+      const w = s.offsetWidth;
+      return -(s.offsetLeft - (vw - w) / 2);
+    });
+  }
+  function apply(animate) {
+    track.style.transition = animate ? '' : 'none';
+    track.style.transform = 'translateX(' + (centers[index] + dragDelta) + 'px)';
+  }
+  function paint() {
+    slides.forEach((s, i) => s.classList.toggle('is-active', i === index));
+    dots.forEach((d, i) => {
+      d.classList.toggle('is-active', i === index);
+      if (i === index) d.setAttribute('aria-current', 'true');
+      else d.removeAttribute('aria-current');
+    });
+  }
+  function goTo(i, animate = true) {
+    if (!slides.length) return;
+    index = ((i % slides.length) + slides.length) % slides.length;
+    dragDelta = 0;
+    measure();
+    apply(animate);
+    paint();
+    restartAuto();
+  }
+
+  /* السحب باللمس أو الماوس */
+  viewport.addEventListener('pointerdown', (e) => {
+    if (!canSlide()) return;
+    dragging = true;
+    startX = e.clientX;
+    dragDelta = 0;
+    root.classList.add('dragging');
+    stopAuto();
+    try { viewport.setPointerCapture(e.pointerId); } catch (_) {}
+    apply(false);
+  });
+  viewport.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    let d = e.clientX - startX;
+    /* مقاومة مطاطية عند الطرفين */
+    const overStart = index === 0 && d < 0;
+    const overEnd = index === slides.length - 1 && d > 0;
+    if (overStart || overEnd) d *= 0.35;
+    dragDelta = d;
+    apply(false);
+  });
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    root.classList.remove('dragging');
+    const target = centers[index] + dragDelta;
+    let best = index, bestDist = Infinity;
+    centers.forEach((c, i) => {
+      const dist = Math.abs(c - target);
+      if (dist < bestDist) { bestDist = dist; best = i; }
+    });
+    /* دفعة إضافية للسحبات القصيرة الواضحة */
+    const thr = Math.min(90, (slides[index] ? slides[index].offsetWidth : 200) * 0.22);
+    if (best === index && Math.abs(dragDelta) > thr) {
+      best = dragDelta > 0 ? index + 1 : index - 1; /* في RTL السحب لليمين يُظهر التالية */
+    }
+    goTo(best);
+  };
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+
+  prevBtn.addEventListener('click', () => goTo(index - 1));
+  nextBtn.addEventListener('click', () => goTo(index + 1));
+  root.addEventListener('keydown', (e) => {
+    if (!canSlide()) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(index + 1); } /* اتجاه RTL */
+    if (e.key === 'ArrowRight') { e.preventDefault(); goTo(index - 1); }
+  });
+
+  /* تقليب تلقائي هادئ يتوقف عند التفاعل */
+  function startAuto() {
+    if (autoTimer || !canSlide() || reduceMotion.matches || document.hidden) return;
+    autoTimer = setInterval(() => goTo(index + 1), 6000);
+  }
+  function stopAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } }
+  function restartAuto() { stopAuto(); startAuto(); }
+  root.addEventListener('pointerenter', stopAuto);
+  root.addEventListener('pointerleave', () => { if (!dragging) startAuto(); });
+  root.addEventListener('focusin', stopAuto);
+  root.addEventListener('focusout', startAuto);
+  document.addEventListener('visibilitychange', () => (document.hidden ? stopAuto() : startAuto()));
+  window.addEventListener('resize', () => { measure(); apply(false); });
+
+  function buildDots() {
+    dotsBox.innerHTML = '';
+    dots = slides.map((_, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'hs-dot';
+      b.setAttribute('aria-label', 'الانتقال إلى الصورة ' + (i + 1));
+      b.addEventListener('click', () => goTo(i));
+      dotsBox.appendChild(b);
+      return b;
+    });
+  }
+
+  /* تبنّي الشرائح الموجودة في HTML (بدون لوحة تحكم) */
+  function adoptStatic() {
+    slides = $$('.hero-slide', track);
+    slideKey = slides.map((s) => ((s.querySelector('img') || {}).src || '')).join('|');
+    index = 0;
+    buildDots();
+    root.classList.toggle('single', !canSlide());
+    measure(); apply(false); paint();
+    startAuto();
+  }
+
+  /* استبدال الشرائح بصور لوحة التحكم عند وصولها */
+  function setSlides(urls, alts) {
+    const clean = (Array.isArray(urls) ? urls : []).filter(Boolean);
+    const key = clean.join('|');
+    if (!clean.length || key === slideKey) return;
+    slideKey = key;
+    stopAuto();
+    track.innerHTML = '';
+    slides = clean.map((u, i) => {
+      const fig = document.createElement('figure');
+      fig.className = 'hero-slide';
+      const frame = document.createElement('div');
+      frame.className = 'hero-frame';
+      const img = document.createElement('img');
+      img.src = u;
+      img.alt = (alts && alts[i]) || 'من صور عيادة أوراس';
+      img.loading = i === 0 ? 'eager' : 'lazy';
+      img.decoding = 'async';
+      img.draggable = false;
+      frame.appendChild(img);
+      fig.appendChild(frame);
+      track.appendChild(fig);
+      return fig;
+    });
+    index = 0;
+    dragDelta = 0;
+    buildDots();
+    root.classList.toggle('single', !canSlide());
+    measure(); apply(false); paint();
+    startAuto();
+  }
+
+  adoptStatic();
+  window.addEventListener('load', () => { measure(); apply(false); });
+
+  return { setSlides: setSlides };
+})();
+
 </script>
 <script>
   window.ORAS_SANITY_CONFIG = { projectId: 'upxb9w10', dataset: 'production' };
 </script>
-<script src="oras-sanity.js?v=8" defer></script>
+<script src="oras-sanity.js?v=9" defer></script>
 <script src="oras-booking.js?v=2" defer></script>
 </body>
 </html>
