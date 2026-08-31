@@ -69,6 +69,7 @@ if (fatal) {
 // ─── 3) المحتوى المنشور ───
 hdr('3) المحتوى المنشور (ما يراه الموقع فعلياً)')
 const groq = `{"settings": *[_type == "siteSettings"][0],
+ "heroSlides": *[_type == "heroSlide" && isActive != false] | order(order asc),
  "services": *[_type == "service"] | order(order asc),
  "cases": *[_type == "caseStudy"] | order(order asc),
  "gallery": *[_type == "galleryItem"] | order(order asc),
@@ -86,6 +87,7 @@ const {result} = await r2.json()
 
 const counts = [
   ['إعدادات الموقع', result.settings ? 1 : 0],
+  ['شرائح الواجهة', result.heroSlides?.length || 0],
   ['الخدمات', result.services?.length || 0],
   ['الحالات', result.cases?.length || 0],
   ['صور نشاط العيادة', result.gallery?.length || 0],

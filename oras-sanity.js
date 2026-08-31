@@ -181,11 +181,14 @@
   var QUERY = [
     '{',
     '"settings": *[_type == "siteSettings"][0]{',
-    'clinicName, tagline, logo, heroTitle, heroSubtitle, heroImage, heroHighlights,',
+      'clinicName, tagline, logo, heroTitle, heroSubtitle, heroImage, heroHighlights,',
     'aboutTitle, aboutBody, aboutImage, stats,',
     'phone, whatsapp, email, addressLine, mapsUrl, mapEmbedUrl, openingHours, socialLinks,',
     'sectionBackgrounds, sectionHeadings, seo, surveyQuestions',
     '},',
+      '"heroSlides": *[_type == "heroSlide" && isActive != false]|order(order asc){',
+      '_id, image, alt',
+      '},',
       '"services": *[_type == "service" && isActive != false]|order(order asc){',
       '_id, title, summary, icon, image{..., asset->}, showInBookingForm,',
     'price, priceNote, duration, sessionsCount, details, includes',
@@ -360,7 +363,6 @@
       if (t2) t2.textContent = ''
     }
     setText('#heroSub', s.heroSubtitle)
-    setDataImg('hero', s.heroImage, 900, 1200, true)
 
     if (Array.isArray(s.heroHighlights) && s.heroHighlights.length) {
       var trust = $('.hero .trust')
@@ -947,6 +949,33 @@
   /* ---------- التشغيل ---------- */
   function apply(data) {
     renderSettings(data.settings)
+
+    /* شرائح الواجهة: شرائح اللوحة المفعّلة إن وُجدت، وإلا صورة الواجهة + صور المعرض */
+    var st = data.settings || {}
+    var heroSrcs = []
+    var heroAlts = []
+    ;(Array.isArray(data.heroSlides) ? data.heroSlides : []).forEach(function (sl) {
+      var u = imageUrl(sl.image, 900, 1200, true)
+      if (u) {
+        heroSrcs.push(u)
+        heroAlts.push(sl.alt || (sl.image && sl.image.alt) || '')
+      }
+    })
+    if (!heroSrcs.length) {
+      var hu = imageUrl(st.heroImage, 900, 1200, true)
+      if (hu) {
+        heroSrcs.push(hu)
+        heroAlts.push((st.heroImage && st.heroImage.alt) || '')
+      }
+      ;(data.gallery || []).forEach(function (g) {
+        var u = imageUrl(g.image, 900, 1200, true)
+        if (u) {
+          heroSrcs.push(u)
+          heroAlts.push((g.image && g.image.alt) || g.caption || '')
+        }
+      })
+    }
+    if (heroSrcs.length && window.orasHeroSlider) window.orasHeroSlider.setSlides(heroSrcs, heroAlts)
     renderServices(data.services || [])
     renderCases(data.cases || [])
     renderGallery(data.gallery || [])
