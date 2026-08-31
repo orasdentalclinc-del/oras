@@ -45,15 +45,6 @@ export default {
       description: 'يُفضّل صورة عمودية عالية الجودة (مثلاً 900×1200)',
     },
     {
-      name: 'heroImages',
-      title: 'شرائح الواجهة (عرض متحرك)',
-      type: 'array',
-      of: [{type: 'image', options: {hotspot: true}}],
-      group: 'hero',
-      description:
-        'اختياري: مجموعة صور تتنقل بالسحب في واجهة الموقع. إذا تُركت فارغة تُعرض صورة الواجهة مع صور المعرض تلقائياً.',
-    },
-    {
       name: 'heroHighlights',
       title: 'نقاط الثقة (أعلى الصفحة)',
       description: 'مثال: تعقيم بمعايير عالمية — أحدث التقنيات الرقمية…',

@@ -181,11 +181,14 @@
   var QUERY = [
     '{',
     '"settings": *[_type == "siteSettings"][0]{',
-      'clinicName, tagline, logo, heroTitle, heroSubtitle, heroImage, heroImages, heroHighlights,',
+      'clinicName, tagline, logo, heroTitle, heroSubtitle, heroImage, heroHighlights,',
     'aboutTitle, aboutBody, aboutImage, stats,',
     'phone, whatsapp, email, addressLine, mapsUrl, mapEmbedUrl, openingHours, socialLinks,',
     'sectionBackgrounds, sectionHeadings, seo, surveyQuestions',
     '},',
+      '"heroSlides": *[_type == "heroSlide" && isActive != false]|order(order asc){',
+      '_id, image, alt',
+      '},',
       '"services": *[_type == "service" && isActive != false]|order(order asc){',
       '_id, title, summary, icon, image{..., asset->}, showInBookingForm,',
     'price, priceNote, duration, sessionsCount, details, includes',
@@ -947,15 +950,15 @@
   function apply(data) {
     renderSettings(data.settings)
 
-    /* شرائح الواجهة: صور مختارة من اللوحة إن وُجدت، وإلا صورة الواجهة + صور المعرض */
+    /* شرائح الواجهة: شرائح اللوحة المفعّلة إن وُجدت، وإلا صورة الواجهة + صور المعرض */
     var st = data.settings || {}
     var heroSrcs = []
     var heroAlts = []
-    ;(Array.isArray(st.heroImages) ? st.heroImages : []).forEach(function (im) {
-      var u = imageUrl(im, 900, 1200, true)
+    ;(Array.isArray(data.heroSlides) ? data.heroSlides : []).forEach(function (sl) {
+      var u = imageUrl(sl.image, 900, 1200, true)
       if (u) {
         heroSrcs.push(u)
-        heroAlts.push((im && im.alt) || '')
+        heroAlts.push(sl.alt || (sl.image && sl.image.alt) || '')
       }
     })
     if (!heroSrcs.length) {
