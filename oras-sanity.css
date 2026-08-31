@@ -15,8 +15,10 @@
   overflow: hidden;
   border-radius: 18px;
   margin-bottom: 18px;
-  border: 1px solid var(--oras-line);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 10px 26px rgba(168, 132, 28, 0.12);
   aspect-ratio: 16 / 10;
+  background: rgba(255, 255, 255, 0.4);
 }
 .service-media img {
   width: 100%;
@@ -31,7 +33,11 @@
 
 /* ── حالات قبل وبعد ── */
 .case-visual.case-photos {
-  background: #16130d;
+  background: rgba(22, 19, 13, 0.55);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
   padding: 18px;
   position: relative;
 }
@@ -44,8 +50,8 @@
   margin: 0;
   border-radius: 14px;
   overflow: hidden;
-  border: 1px solid rgba(233, 217, 170, 0.35);
-  background: #0f0d09;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(15, 13, 9, 0.6);
 }
 .case-side img {
   width: 100%;
@@ -71,11 +77,14 @@
   padding-inline-end: 6px;
 }
 .review-card {
-  background: #fff;
-  border: 1px solid var(--oras-line);
+  background-color: rgba(255, 255, 255, 0.55);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 253, 246, 0.35) 100%);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   border-radius: 16px;
   padding: 16px 18px;
-  box-shadow: 0 6px 18px rgba(17, 17, 17, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 10px 24px rgba(168, 132, 28, 0.12);
 }
 .review-card-head {
   display: flex;

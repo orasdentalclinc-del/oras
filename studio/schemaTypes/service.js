@@ -13,7 +13,14 @@ export default {
       type: 'string',
       options: {list: SERVICE_ICONS, layout: 'dropdown'},
       initialValue: 'tooth',
-      description: 'الأيقونات مرسومة داخل الموقع — اختر الأقرب للخدمة',
+      description: 'الأيقونات مرسومة داخل الموقع — اختر الأقرب للخدمة (إن رفعّت شعاراً بصورة فهو يتقدم عليها)',
+    },
+    {
+      name: 'image',
+      title: 'لوغو الخدمة (صورة)',
+      type: 'image',
+      options: {hotspot: false},
+      description: 'اختياري — ارفع شعار الخدمة (يُفضّل صورة مربعة بخلفية شفافة PNG/SVG). إن تُرك فارغاً تظهر الأيقونة أعلاه.',
     },
     {
       name: 'isActive',
