@@ -61,10 +61,11 @@ export default {
   ],
   orderings: [{title: 'الترتيب', name: 'orderAsc', by: [{field: 'order', direction: 'asc'}]}],
   preview: {
-    select: {title: 'title', subtitle: 'summary', order: 'order'},
-    prepare: ({title, subtitle, order}) => ({
+    select: {title: 'title', subtitle: 'summary', order: 'order', media: 'image'},
+    prepare: ({title, subtitle, order, media}) => ({
       title: `${order ?? '—'}. ${title}`,
       subtitle,
+      media,
     }),
   },
 }
