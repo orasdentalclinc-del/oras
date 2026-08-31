@@ -1584,7 +1584,7 @@ $('#revSubmit').addEventListener('click', () => {
   }, 4200);
 });
 
-/* ═══════════ شرائح الواجهة: سحب باللمس/الماوس + تلاشي الجوانب ═══════════ */
+/* ═══════════ شرائح الواجهة: سحب متتابع بحلقة لا نهائية تعود للأولى ═══════════ */
 window.orasHeroSlider = (function () {
   const root = $('#heroSlider');
   if (!root) return null;
@@ -1597,48 +1597,85 @@ window.orasHeroSlider = (function () {
     ? window.matchMedia('(prefers-reduced-motion: reduce)')
     : { matches: false };
 
-  let slides = [], centers = [], dots = [];
-  let index = 0, dragDelta = 0, dragging = false, startX = 0;
-  let autoTimer = null, slideKey = '';
+  /* المسار: [نسخة الأخيرة] + الشرائح الحقيقية + [نسخة الأولى] => تتابع لا نهائي */
+  let items = [];      /* كل عناصر المسار شاملًا النسختين */
+  let realCount = 0;
+  let centers = [];
+  let dots = [];
+  let pos = 1;         /* الموضع داخل المسار: 1..n حقيقي، 0 و n+1 نسختان طرفيتان */
+  let dragDelta = 0, dragging = false, startX = 0;
+  let autoTimer = null, slideKey = '', normTimer = null;
 
-  const canSlide = () => slides.length > 1;
+  const canSlide = () => realCount > 1;
+  const realIndex = (p) => (((p - 1) % realCount) + realCount) % realCount;
+  const state = () => ({ pos: pos, real: realIndex(pos), count: realCount });
 
-  /* قيمة الإزاحة التي تُوسّط كل شريحة داخل الإطار */
+  /* قيمة الإزاحة التي تُوسّط كل عنصر داخل الإطار */
   function measure() {
     const vw = viewport.clientWidth || 0;
-    centers = slides.map((s) => {
+    centers = items.map((s) => {
       const w = s.offsetWidth;
       return -(s.offsetLeft - (vw - w) / 2);
     });
   }
   function apply(animate) {
     track.style.transition = animate ? '' : 'none';
-    track.style.transform = 'translateX(' + (centers[index] + dragDelta) + 'px)';
+    track.style.transform = 'translateX(' + (centers[pos] + dragDelta) + 'px)';
   }
   function paint() {
-    slides.forEach((s, i) => s.classList.toggle('is-active', i === index));
+    const act = realIndex(pos);
+    items.forEach((s, i) => s.classList.toggle('is-active', i === pos));
     dots.forEach((d, i) => {
-      d.classList.toggle('is-active', i === index);
-      if (i === index) d.setAttribute('aria-current', 'true');
+      d.classList.toggle('is-active', i === act);
+      if (i === act) d.setAttribute('aria-current', 'true');
       else d.removeAttribute('aria-current');
     });
   }
-  function goTo(i, animate = true) {
-    if (!slides.length) return;
-    index = ((i % slides.length) + slides.length) % slides.length;
+
+  /* بعد بلوغ نسخة طرفية: قفزة صامتة للموضع الحقيقي المكافئ => عودة سلسة للأولى */
+  function normalize() {
+    if (pos === 0) pos = realCount;
+    else if (pos === realCount + 1) pos = 1;
+    else return;
+    dragDelta = 0;
+    apply(false);
+    paint();
+  }
+  track.addEventListener('transitionend', (e) => {
+    if (e.target === track && e.propertyName === 'transform' && !dragging) normalize();
+  });
+  function scheduleNormalize() {
+    clearTimeout(normTimer);
+    normTimer = setTimeout(() => { if (!dragging) normalize(); }, 750);
+  }
+
+  function goToPos(p, animate = true) {
+    if (!items.length) return;
+    pos = Math.max(0, Math.min(realCount + 1, p));
     dragDelta = 0;
     measure();
-    apply(animate);
+    if (animate && !reduceMotion.matches) {
+      apply(true);
+      scheduleNormalize();
+    } else {
+      /* تفضيل تقليل الحركة: انتقال مباشر للموضع الحقيقي المكافئ */
+      if (pos === 0) pos = realCount;
+      else if (pos === realCount + 1) pos = 1;
+      apply(false);
+    }
     paint();
     restartAuto();
   }
+  const next = () => goToPos(pos + 1);
+  const prev = () => goToPos(pos - 1);
 
-  /* السحب باللمس أو الماوس */
+  /* السحب باللمس أو الماوس — بلا أطراف: السحب الزائد يُدخل النسخة الطرفية */
   viewport.addEventListener('pointerdown', (e) => {
     if (!canSlide()) return;
     dragging = true;
     startX = e.clientX;
     dragDelta = 0;
+    clearTimeout(normTimer);
     root.classList.add('dragging');
     stopAuto();
     try { viewport.setPointerCapture(e.pointerId); } catch (_) {}
@@ -1646,46 +1683,37 @@ window.orasHeroSlider = (function () {
   });
   viewport.addEventListener('pointermove', (e) => {
     if (!dragging) return;
-    let d = e.clientX - startX;
-    /* مقاومة مطاطية عند الطرفين */
-    const overStart = index === 0 && d < 0;
-    const overEnd = index === slides.length - 1 && d > 0;
-    if (overStart || overEnd) d *= 0.35;
-    dragDelta = d;
+    dragDelta = e.clientX - startX;
     apply(false);
   });
   const endDrag = () => {
     if (!dragging) return;
     dragging = false;
     root.classList.remove('dragging');
-    const target = centers[index] + dragDelta;
-    let best = index, bestDist = Infinity;
-    centers.forEach((c, i) => {
-      const dist = Math.abs(c - target);
-      if (dist < bestDist) { bestDist = dist; best = i; }
-    });
-    /* دفعة إضافية للسحبات القصيرة الواضحة */
-    const thr = Math.min(90, (slides[index] ? slides[index].offsetWidth : 200) * 0.22);
-    if (best === index && Math.abs(dragDelta) > thr) {
-      best = dragDelta > 0 ? index + 1 : index - 1; /* في RTL السحب لليمين يُظهر التالية */
-    }
-    goTo(best);
+    /* تتابع خطوة-بخطوة: اتجاه السحب يحدد التالية/السابقة والمسافة قد تعبر أكثر من شريحة */
+    const w = items[pos] ? items[pos].offsetWidth : 0;
+    const unit = (w || 100) + 18; /* عرض الشريحة + الفجوة */
+    const thr = Math.min(90, unit * 0.22);
+    let steps = Math.round(Math.abs(dragDelta) / unit);
+    if (Math.abs(dragDelta) > thr && steps === 0) steps = 1;
+    const p = pos + (dragDelta > 0 ? steps : -steps); /* في RTL السحب لليمين يُظهر التالية */
+    goToPos(p);
   };
   viewport.addEventListener('pointerup', endDrag);
   viewport.addEventListener('pointercancel', endDrag);
 
-  prevBtn.addEventListener('click', () => goTo(index - 1));
-  nextBtn.addEventListener('click', () => goTo(index + 1));
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
   root.addEventListener('keydown', (e) => {
     if (!canSlide()) return;
-    if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(index + 1); } /* اتجاه RTL */
-    if (e.key === 'ArrowRight') { e.preventDefault(); goTo(index - 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); next(); } /* اتجاه RTL */
+    if (e.key === 'ArrowRight') { e.preventDefault(); prev(); }
   });
 
-  /* تقليب تلقائي هادئ يتوقف عند التفاعل */
+  /* تقليب تلقائي متتابع: الأخيرة => نسخة الأولى => قفزة صامتة => يستأنف */
   function startAuto() {
     if (autoTimer || !canSlide() || reduceMotion.matches || document.hidden) return;
-    autoTimer = setInterval(() => goTo(index + 1), 6000);
+    autoTimer = setInterval(next, 6000);
   }
   function stopAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } }
   function restartAuto() { stopAuto(); startAuto(); }
@@ -1698,22 +1726,45 @@ window.orasHeroSlider = (function () {
 
   function buildDots() {
     dotsBox.innerHTML = '';
-    dots = slides.map((_, i) => {
+    dots = [];
+    for (let i = 0; i < realCount; i++) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'hs-dot';
       b.setAttribute('aria-label', 'الانتقال إلى الصورة ' + (i + 1));
-      b.addEventListener('click', () => goTo(i));
+      b.addEventListener('click', () => goToPos(i + 1));
       dotsBox.appendChild(b);
-      return b;
-    });
+      dots.push(b);
+    }
+  }
+
+  /* بناء المسار بالنسختين الطرفيتين */
+  function buildTrack(figs) {
+    track.innerHTML = '';
+    if (figs.length > 1) {
+      const head = figs[figs.length - 1].cloneNode(true);
+      head.classList.remove('is-active');
+      head.setAttribute('aria-hidden', 'true');
+      track.appendChild(head);
+    }
+    figs.forEach((f) => track.appendChild(f));
+    if (figs.length > 1) {
+      const tail = figs[0].cloneNode(true);
+      tail.classList.remove('is-active');
+      tail.setAttribute('aria-hidden', 'true');
+      track.appendChild(tail);
+    }
+    items = $$('.hero-slide', track);
+    realCount = figs.length;
+    pos = 1;
+    dragDelta = 0;
   }
 
   /* تبنّي الشرائح الموجودة في HTML (بدون لوحة تحكم) */
   function adoptStatic() {
-    slides = $$('.hero-slide', track);
-    slideKey = slides.map((s) => ((s.querySelector('img') || {}).src || '')).join('|');
-    index = 0;
+    const figs = $$('.hero-slide', track);
+    slideKey = figs.map((s) => ((s.querySelector('img') || {}).src || '')).join('|');
+    buildTrack(figs);
     buildDots();
     root.classList.toggle('single', !canSlide());
     measure(); apply(false); paint();
@@ -1727,8 +1778,7 @@ window.orasHeroSlider = (function () {
     if (!clean.length || key === slideKey) return;
     slideKey = key;
     stopAuto();
-    track.innerHTML = '';
-    slides = clean.map((u, i) => {
+    const figs = clean.map((u, i) => {
       const fig = document.createElement('figure');
       fig.className = 'hero-slide';
       const frame = document.createElement('div');
@@ -1741,11 +1791,9 @@ window.orasHeroSlider = (function () {
       img.draggable = false;
       frame.appendChild(img);
       fig.appendChild(frame);
-      track.appendChild(fig);
       return fig;
     });
-    index = 0;
-    dragDelta = 0;
+    buildTrack(figs);
     buildDots();
     root.classList.toggle('single', !canSlide());
     measure(); apply(false); paint();
@@ -1755,7 +1803,7 @@ window.orasHeroSlider = (function () {
   adoptStatic();
   window.addEventListener('load', () => { measure(); apply(false); });
 
-  return { setSlides: setSlides };
+  return { setSlides: setSlides, state: state };
 })();
 
 </script>
