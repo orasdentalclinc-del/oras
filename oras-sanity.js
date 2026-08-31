@@ -139,6 +139,21 @@
     return span
   }
 
+  /* لوغو الخدمة من لوحة التحكم (صورة) — يتقدم على الأيقونة المرسومة */
+  function iconBox(s) {
+    var u = imageUrl(s.image, 160, 160, false)
+    if (u) {
+      var span = make('span', 'ic')
+      var im = document.createElement('img')
+      im.setAttribute('loading', 'lazy')
+      im.setAttribute('src', u)
+      im.setAttribute('alt', '')
+      span.appendChild(im)
+      return span
+    }
+    return iconSpan(s.icon)
+  }
+
   /* ---------- الاستعلام ---------- */
   var QUERY = [
     '{',
@@ -148,8 +163,8 @@
     'phone, whatsapp, email, addressLine, mapsUrl, mapEmbedUrl, openingHours, socialLinks,',
     'sectionBackgrounds, sectionHeadings, seo, surveyQuestions',
     '},',
-    '"services": *[_type == "service" && isActive != false]|order(order asc){',
-    '_id, title, summary, icon, showInBookingForm,',
+      '"services": *[_type == "service" && isActive != false]|order(order asc){',
+      '_id, title, summary, icon, image, showInBookingForm,',
     'price, priceNote, duration, sessionsCount, details, includes',
     '},',
     '"cases": *[_type == "caseStudy" && isPublished == true]|order(order asc){',
@@ -549,23 +564,24 @@
   var SRV_CSS = [
     '.srv{cursor:pointer}',
     '.srv-more{display:inline-flex;align-items:center;gap:.35rem;margin-top:14px;font-weight:800;font-size:.86rem;color:var(--gold-ink,#8A6D1F)}',
-    '.srv-price{display:inline-block;margin-top:12px;background:var(--gold-pale,#FBF6E7);border:1px solid var(--line,#EFE4C4);color:var(--gold-ink,#8A6D1F);border-radius:999px;padding:.22rem .85rem;font-size:.82rem;font-weight:900}',
-    '.srv-modal{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(61,53,36,.55);backdrop-filter:blur(6px)}',
+    '.srv-price{display:inline-block;margin-top:12px;background-color:rgba(251,246,231,.7);background-image:linear-gradient(135deg,rgba(255,255,255,.7),rgba(251,246,231,.3));border:1px solid rgba(255,255,255,.75);color:var(--gold-ink,#8A6D1F);border-radius:999px;padding:.22rem .85rem;font-size:.82rem;font-weight:900;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}',
+    '.srv-modal{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(61,53,36,.45);backdrop-filter:blur(10px) saturate(130%);-webkit-backdrop-filter:blur(10px) saturate(130%)}',
     '.srv-modal.open{display:flex}',
-    '.srv-box{background:#FFFDF6;border:1px solid var(--line,#EFE4C4);border-radius:24px;box-shadow:0 30px 80px rgba(61,53,36,.35);width:min(600px,100%);max-height:88vh;overflow:auto;padding:30px 28px 26px;position:relative;text-align:right}',
+    '.srv-box{background-color:rgba(255,253,246,.85);background-image:linear-gradient(160deg,rgba(255,255,255,.7) 0%,rgba(255,253,246,.32) 100%);border:1px solid rgba(255,255,255,.75);border-radius:24px;backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 30px 80px rgba(61,53,36,.4);width:min(600px,100%);max-height:88vh;overflow:auto;padding:30px 28px 26px;position:relative;text-align:right}',
     '.srv-box .srv-x{position:absolute;top:16px;left:16px;width:38px;height:38px;border-radius:50%;border:1px solid var(--line,#EFE4C4);background:#fff;color:var(--gold-ink,#8A6D1F);font-size:1.2rem;font-weight:900;cursor:pointer;line-height:1}',
-    '.srv-box .ic{width:66px;height:66px;border-radius:20px;background:var(--gold-pale,#FBF6E7);border:1px solid var(--line,#EFE4C4);display:grid;place-items:center;margin-bottom:16px}',
+    '.srv-box .ic{width:66px;height:66px;border-radius:20px;background-color:rgba(251,246,231,.75);background-image:linear-gradient(135deg,rgba(255,255,255,.7),rgba(251,246,231,.3));border:1px solid rgba(255,255,255,.75);display:grid;place-items:center;margin-bottom:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}',
+    '.srv-box .ic img{width:74%;height:74%;object-fit:contain}',
     '.srv-box h3{font-size:1.5rem;font-weight:900;margin-bottom:8px}',
     '.srv-box .lead{color:var(--ink-soft,#6F6448);margin-bottom:18px}',
     '.srv-facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}',
-    '.srv-fact{background:#fff;border:1px solid var(--line,#EFE4C4);border-radius:16px;padding:12px 14px}',
+    '.srv-fact{background-color:rgba(255,255,255,.5);background-image:linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,253,246,.25));border:1px solid rgba(255,255,255,.7);border-radius:16px;padding:12px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}',
     '.srv-fact small{display:block;color:var(--ink-soft,#6F6448);font-size:.78rem;font-weight:700}',
     '.srv-fact b{font-size:1.02rem;font-weight:900}',
     '.srv-note{color:var(--ink-soft,#6F6448);font-size:.84rem;margin:-8px 0 16px}',
     '.srv-box .body p{color:var(--ink-soft,#6F6448);margin-bottom:10px;font-size:.96rem}',
     '.srv-inc{margin:6px 0 18px;display:grid;gap:8px}',
     '.srv-inc li{display:flex;gap:.55rem;align-items:flex-start;font-weight:700;font-size:.93rem;list-style:none}',
-    '.srv-inc i{flex:none;width:22px;height:22px;border-radius:7px;background:var(--gold-pale,#FBF6E7);border:1px solid var(--line,#EFE4C4);color:var(--gold-ink,#8A6D1F);display:grid;place-items:center;font-size:.74rem;font-style:normal;font-weight:900;margin-top:2px}',
+    '.srv-inc i{flex:none;width:22px;height:22px;border-radius:7px;background-color:rgba(251,246,231,.8);background-image:linear-gradient(135deg,rgba(255,255,255,.7),rgba(251,246,231,.3));border:1px solid rgba(255,255,255,.75);color:var(--gold-ink,#8A6D1F);display:grid;place-items:center;font-size:.74rem;font-style:normal;font-weight:900;margin-top:2px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}',
     '.srv-acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}',
     '@media(max-width:560px){.srv-facts{grid-template-columns:1fr}.srv-box{padding:26px 20px 22px}}',
   ].join('')
@@ -610,7 +626,7 @@
     x.addEventListener('click', closeModal)
     modalBox.appendChild(x)
 
-    modalBox.appendChild(iconSpan(s.icon))
+    modalBox.appendChild(iconBox(s))
     modalBox.appendChild(make('h3', null, s.title))
     if (s.summary) modalBox.appendChild(make('p', 'lead', s.summary))
 
