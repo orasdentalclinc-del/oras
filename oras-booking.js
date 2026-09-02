@@ -8,6 +8,10 @@
 
 var ENDPOINT = 'https://script.google.com/macros/s/AKfycby8lxyjADZwmM_YVFxklEEtjhNwY691C-rNv5aaOrPoWnH4OFY2iIHDzpI-k8Tq3Jo8Ow/exec';
 
+/* نُعرّف الرابط كقيمة عامة ليستخدمه أيضاً مرسل التقييمات في index.html —
+   التقييمات تصل إلى نفس سكربت Google Apps Script (booking/Code.gs). */
+window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
+
 (function () {
   'use strict';
 
