@@ -1187,6 +1187,10 @@ section + section::after{
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 window.__WA__ = window.__WA__ || '249912345678';
+/* رابط Google Apps Script الذي يستقبل التقييمات ويحفظها في لوحة التحكم (Sanity).
+   نستخدم تلقائياً نفس رابط سكربت الحجز في oras-booking.js (booking/Code.gs).
+   يمكنك تخصيصه يدوياً بتعيين window.ORAS_REVIEW_ENDPOINT قبل تحميل الصفحة. */
+window.ORAS_REVIEW_ENDPOINT = window.ORAS_REVIEW_ENDPOINT || window.ORAS_BOOKING_ENDPOINT || '';
 
 
 /* ═══════════ تفاعلات الصفحة ═══════════ */
@@ -1357,50 +1361,85 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && revModal.classList.contains('open')) closeRevModal();
 });
 
-/* الإرسال — يصل التقييم للعيادة عبر واتساب، ثم يضيفه صاحب العيادة من لوحة
-   التحكم (قسم آراء المرضى) لينشر على الموقع بعد المراجعة */
+/* الإرسال — يُخزَّن التقييم في لوحة تحكم Sanity (عبر Google Apps Script) بدلاً من
+   واتساب. يُحفظ بحالة «قيد المراجعة»؛ وعند اعتماده من اللوحة يُنشر على الموقع. */
 $('#revSubmit').addEventListener('click', () => {
   const name = $('#rvName').value.trim();
   const phone = $('#rvPhone').value.trim();
   const text = $('#rvText').value.trim();
-  if (!revRating) { showToast('من فضلك اختر تقييماً بالنجوم أولاً'); return; }
-  if (!name) { showToast('من فضلك اكتب اسمك'); return; }
-  const starsLine = revStars(revRating) + ' (' + revRating + '/5)';
-  const answers = surveyQuestions
+  if (!revRating) { showToast('⚠️ من فضلك اختر تقييماً بالنجوم أولاً'); return; }
+  if (!name) { showToast('⚠️ من فضلك اكتب اسمك — الاسم حقل مطلوب'); $('#rvName').focus(); return; }
+
+  const endpoint = window.ORAS_REVIEW_ENDPOINT || window.ORAS_BOOKING_ENDPOINT || '';
+  if (!endpoint || typeof endpoint !== 'string' || endpoint.indexOf('https://') !== 0) {
+    showToast('تعذّر الإرسال: لم يُضبط رابط استقبال التقييمات بعد (انظر booking/README.md)');
+    return;
+  }
+
+  const btn = $('#revSubmit');
+  btn.setAttribute('disabled', '');
+
+  const surveyAnswerRows = surveyQuestions
     .map((q, qi) => {
       const v = surveyPickers[qi] ? surveyPickers[qi].getValue() : 0;
       if (!q || !v) return null;
-      return '   ' + (qi + 1) + ') ' + q + ' ➜ ' + v + '/5 ' + revStars(v);
+      return { question: q, score: v };
     })
     .filter(Boolean);
-  const clinic = $('.brandShort')?.textContent || 'أوراس';
-  const msg =
-    '★ تقييم جديد من موقع ' + clinic + ' لطب الأسنان\n' +
-    '────────────────\n' +
-    starsLine + '\n' +
-    '👤 الاسم: ' + name + '\n' +
-    (phone ? '📞 الهاتف: ' + phone + '\n' : '') +
-    (text ? '💬 التعليق: ' + text + '\n' : '') +
-    (answers.length ? '📋 الاستبيان:\n' + answers.join('\n') + '\n' : '') +
-    '────────────────\n' +
-    'أُرسل من قسم آراء المرضى في الموقع';
-  const wurl = 'https://wa.me/' + window.__WA__ + '?text=' + encodeURIComponent(msg);
-  const win = window.open(wurl, '_blank');
-  if (!win) location.href = wurl;
-  $('#revThanks').removeAttribute('hidden');
-  $('#revSubmit').setAttribute('disabled', '');
-  showToast('✅ تم استلام تقييمك — شكراً لمساهمتك');
-  setTimeout(() => {
-    closeRevModal();
-    $('#revThanks').setAttribute('hidden', '');
-    $('#revSubmit').removeAttribute('disabled');
-    $('#rvName').value = '';
-    $('#rvPhone').value = '';
-    $('#rvText').value = '';
-    revRating = 0;
-    paintStars();
-    surveyPickers.forEach((p) => p && p.reset());
-  }, 4200);
+
+  const payload = {
+    name: name,
+    rating: revRating,
+    comment: text,
+    phone: phone,
+    surveyAnswers: surveyAnswerRows,
+    source: 'website',
+    status: 'pending'
+  };
+
+  const finishOk = () => {
+    $('#revThanks').removeAttribute('hidden');
+    showToast('✅ تم استلام تقييمك — سيظهر على الموقع بعد مراجعته');
+    setTimeout(() => {
+      closeRevModal();
+      $('#revThanks').setAttribute('hidden', '');
+      btn.removeAttribute('disabled');
+      $('#rvName').value = '';
+      $('#rvPhone').value = '';
+      $('#rvText').value = '';
+      revRating = 0;
+      paintStars();
+      surveyPickers.forEach((p) => p && p.reset());
+    }, 4200);
+  };
+  const finishErr = (msg) => {
+    btn.removeAttribute('disabled');
+    showToast(msg || 'تعذّر إرسال التقييم — حاول لاحقاً');
+  };
+
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', endpoint, true);
+    /* text/plain يمنع طلب CORS preflight — نفس أسلوب نظام الحجز في oras-booking.js */
+    xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+    xhr.timeout = 15000;
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status >= 200 && xhr.status < 400) {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (res && res.ok) return finishOk();
+          return finishErr(res && res.error ? 'تعذّر الإرسال: ' + res.error : 'تعذّر إرسال التقييم — حاول لاحقاً');
+        } catch (e) { return finishErr('تعذّر قراءة رد الخادم — حاول لاحقاً'); }
+      }
+      return finishErr('تعذّر الوصول للخادم — تحقق من الإنترنت وحاول لاحقاً');
+    };
+    xhr.onerror = () => finishErr('تعذّر الوصول للخادم — تحقق من الإنترنت وحاول لاحقاً');
+    xhr.ontimeout = () => finishErr('انتهت مهلة الإرسال — حاول لاحقاً');
+    xhr.send(JSON.stringify(payload));
+  } catch (e) {
+    finishErr('حدث خطأ غير متوقع — حاول لاحقاً');
+  }
 });
 
 </script>
@@ -1408,6 +1447,6 @@ $('#revSubmit').addEventListener('click', () => {
   window.ORAS_SANITY_CONFIG = { projectId: 'upxb9w10', dataset: 'production' };
 </script>
 <script src="oras-sanity.js?v=7" defer></script>
-<script src="oras-booking.js?v=2" defer></script>
+<script src="oras-booking.js?v=3" defer></script>
 </body>
 </html>
