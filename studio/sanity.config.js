@@ -32,6 +32,7 @@ export default defineConfig({
                   .title('إعدادات الموقع'),
               ),
             S.divider(),
+            S.documentTypeListItem('heroSlide').title('🎠 شرائح الواجهة'),
             S.documentTypeListItem('service').title('🦷 الخدمات'),
             S.documentTypeListItem('caseStudy').title('✨ الحالات (قبل / بعد)'),
             S.documentTypeListItem('galleryItem').title('🖼️ نشاط العيادة'),

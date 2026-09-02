@@ -59,21 +59,43 @@
     )
 
   function imageUrl(source, w, h, crop) {
-    var ref = source && source.asset && (source.asset._ref || source.asset._id)
+    if (!source) return ''
+    /* URL جاهز من asset->url أو حقل نصي */
+    if (typeof source === 'string') {
+      if (/^https?:\/\//i.test(source)) return source
+      return ''
+    }
+    var asset = source.asset || source
+    if (asset && typeof asset.url === 'string' && asset.url) {
+      var ready = asset.url
+      var join = ready.indexOf('?') >= 0 ? '&' : '?'
+      ready += join + 'auto=format&q=80'
+      if (w) ready += '&w=' + w
+      if (h) ready += '&h=' + h
+      if (crop) ready += '&fit=crop&crop=entropy'
+      else ready += '&fit=max'
+      return ready
+    }
+    var ref = asset && (asset._ref || asset._id)
     if (!ref) return ''
     var p = String(ref).split('-')
+    /* image-<id>-<WxH>-<ext>  — الامتداد قد يحتوي نقاطاً نادرة؛ نأخذ آخر جزء */
     if (p.length < 4) return ''
+    var ext = p[p.length - 1]
+    var dims = p[p.length - 2]
+    var id = p.slice(1, p.length - 2).join('-')
+    if (!id || !dims || !ext) return ''
     var url =
       'https://cdn.sanity.io/images/' +
       encodeURIComponent(CONFIG.projectId) +
       '/' +
       encodeURIComponent(CONFIG.dataset) +
       '/' +
-      p[1] +
+      id +
       '-' +
-      p[2] +
+      dims +
       '.' +
-      p[3] +
+      ext +
       '?auto=format&q=80'
     if (w) url += '&w=' + w
     if (h) url += '&h=' + h
@@ -139,17 +161,36 @@
     return span
   }
 
+  /* لوغو الخدمة من لوحة التحكم (صورة) — يتقدم على الأيقونة المرسومة */
+  function iconBox(s) {
+    var u = imageUrl(s.image, 160, 160, false)
+    if (u) {
+      var span = make('span', 'ic')
+      var im = document.createElement('img')
+      im.setAttribute('loading', 'lazy')
+      im.setAttribute('decoding', 'async')
+      im.setAttribute('src', u)
+      im.setAttribute('alt', (s && s.title) || '')
+      span.appendChild(im)
+      return span
+    }
+    return iconSpan(s.icon)
+  }
+
   /* ---------- الاستعلام ---------- */
   var QUERY = [
     '{',
     '"settings": *[_type == "siteSettings"][0]{',
-    'clinicName, tagline, logo, heroTitle, heroSubtitle, heroImage, heroHighlights,',
+      'clinicName, tagline, logo, heroTitle, heroSubtitle, heroImage, heroHighlights,',
     'aboutTitle, aboutBody, aboutImage, stats,',
     'phone, whatsapp, email, addressLine, mapsUrl, mapEmbedUrl, openingHours, socialLinks,',
     'sectionBackgrounds, sectionHeadings, seo, surveyQuestions',
     '},',
-    '"services": *[_type == "service" && isActive != false]|order(order asc){',
-    '_id, title, summary, icon, showInBookingForm,',
+      '"heroSlides": *[_type == "heroSlide" && isActive != false]|order(order asc){',
+      '_id, image, alt',
+      '},',
+      '"services": *[_type == "service" && isActive != false]|order(order asc){',
+      '_id, title, summary, icon, image{..., asset->}, showInBookingForm,',
     'price, priceNote, duration, sessionsCount, details, includes',
     '},',
     '"cases": *[_type == "caseStudy" && isPublished == true]|order(order asc){',
@@ -322,7 +363,6 @@
       if (t2) t2.textContent = ''
     }
     setText('#heroSub', s.heroSubtitle)
-    setDataImg('hero', s.heroImage, 900, 1200, true)
 
     if (Array.isArray(s.heroHighlights) && s.heroHighlights.length) {
       var trust = $('.hero .trust')
@@ -549,23 +589,24 @@
   var SRV_CSS = [
     '.srv{cursor:pointer}',
     '.srv-more{display:inline-flex;align-items:center;gap:.35rem;margin-top:14px;font-weight:800;font-size:.86rem;color:var(--gold-ink,#8A6D1F)}',
-    '.srv-price{display:inline-block;margin-top:12px;background:var(--gold-pale,#FBF6E7);border:1px solid var(--line,#EFE4C4);color:var(--gold-ink,#8A6D1F);border-radius:999px;padding:.22rem .85rem;font-size:.82rem;font-weight:900}',
-    '.srv-modal{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(61,53,36,.55);backdrop-filter:blur(6px)}',
+    '.srv-price{display:inline-block;margin-top:12px;background-color:rgba(251,246,231,.7);background-image:linear-gradient(135deg,rgba(255,255,255,.7),rgba(251,246,231,.3));border:1px solid rgba(255,255,255,.75);color:var(--gold-ink,#8A6D1F);border-radius:999px;padding:.22rem .85rem;font-size:.82rem;font-weight:900;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}',
+    '.srv-modal{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(61,53,36,.45);backdrop-filter:blur(10px) saturate(130%);-webkit-backdrop-filter:blur(10px) saturate(130%)}',
     '.srv-modal.open{display:flex}',
-    '.srv-box{background:#FFFDF6;border:1px solid var(--line,#EFE4C4);border-radius:24px;box-shadow:0 30px 80px rgba(61,53,36,.35);width:min(600px,100%);max-height:88vh;overflow:auto;padding:30px 28px 26px;position:relative;text-align:right}',
+    '.srv-box{background-color:rgba(255,253,246,.85);background-image:linear-gradient(160deg,rgba(255,255,255,.7) 0%,rgba(255,253,246,.32) 100%);border:1px solid rgba(255,255,255,.75);border-radius:24px;backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 30px 80px rgba(61,53,36,.4);width:min(600px,100%);max-height:88vh;overflow:auto;padding:30px 28px 26px;position:relative;text-align:right}',
     '.srv-box .srv-x{position:absolute;top:16px;left:16px;width:38px;height:38px;border-radius:50%;border:1px solid var(--line,#EFE4C4);background:#fff;color:var(--gold-ink,#8A6D1F);font-size:1.2rem;font-weight:900;cursor:pointer;line-height:1}',
-    '.srv-box .ic{width:66px;height:66px;border-radius:20px;background:var(--gold-pale,#FBF6E7);border:1px solid var(--line,#EFE4C4);display:grid;place-items:center;margin-bottom:16px}',
+    '.srv-box .ic{width:66px;height:66px;border-radius:20px;background-color:rgba(251,246,231,.75);background-image:linear-gradient(135deg,rgba(255,255,255,.7),rgba(251,246,231,.3));border:1px solid rgba(255,255,255,.75);display:grid;place-items:center;margin-bottom:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}',
+    '.srv-box .ic img{width:74%;height:74%;object-fit:contain}',
     '.srv-box h3{font-size:1.5rem;font-weight:900;margin-bottom:8px}',
     '.srv-box .lead{color:var(--ink-soft,#6F6448);margin-bottom:18px}',
     '.srv-facts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}',
-    '.srv-fact{background:#fff;border:1px solid var(--line,#EFE4C4);border-radius:16px;padding:12px 14px}',
+    '.srv-fact{background-color:rgba(255,255,255,.5);background-image:linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,253,246,.25));border:1px solid rgba(255,255,255,.7);border-radius:16px;padding:12px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}',
     '.srv-fact small{display:block;color:var(--ink-soft,#6F6448);font-size:.78rem;font-weight:700}',
     '.srv-fact b{font-size:1.02rem;font-weight:900}',
     '.srv-note{color:var(--ink-soft,#6F6448);font-size:.84rem;margin:-8px 0 16px}',
     '.srv-box .body p{color:var(--ink-soft,#6F6448);margin-bottom:10px;font-size:.96rem}',
     '.srv-inc{margin:6px 0 18px;display:grid;gap:8px}',
     '.srv-inc li{display:flex;gap:.55rem;align-items:flex-start;font-weight:700;font-size:.93rem;list-style:none}',
-    '.srv-inc i{flex:none;width:22px;height:22px;border-radius:7px;background:var(--gold-pale,#FBF6E7);border:1px solid var(--line,#EFE4C4);color:var(--gold-ink,#8A6D1F);display:grid;place-items:center;font-size:.74rem;font-style:normal;font-weight:900;margin-top:2px}',
+    '.srv-inc i{flex:none;width:22px;height:22px;border-radius:7px;background-color:rgba(251,246,231,.8);background-image:linear-gradient(135deg,rgba(255,255,255,.7),rgba(251,246,231,.3));border:1px solid rgba(255,255,255,.75);color:var(--gold-ink,#8A6D1F);display:grid;place-items:center;font-size:.74rem;font-style:normal;font-weight:900;margin-top:2px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}',
     '.srv-acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}',
     '@media(max-width:560px){.srv-facts{grid-template-columns:1fr}.srv-box{padding:26px 20px 22px}}',
   ].join('')
@@ -610,7 +651,7 @@
     x.addEventListener('click', closeModal)
     modalBox.appendChild(x)
 
-    modalBox.appendChild(iconSpan(s.icon))
+    modalBox.appendChild(iconBox(s))
     modalBox.appendChild(make('h3', null, s.title))
     if (s.summary) modalBox.appendChild(make('p', 'lead', s.summary))
 
@@ -700,7 +741,7 @@
           blocksToParagraphs(s.details).length
 
         var card = make('div', 'srv reveal in')
-        card.appendChild(iconSpan(s.icon))
+        card.appendChild(iconBox(s))
         card.appendChild(make('h3', null, s.title))
         card.appendChild(make('p', null, s.summary))
         if (s.price) card.appendChild(make('span', 'srv-price', s.price))
@@ -908,6 +949,35 @@
   /* ---------- التشغيل ---------- */
   function apply(data) {
     renderSettings(data.settings)
+
+    /* شرائح الواجهة: شرائح اللوحة المفعّلة، وإن كانت أقل من اثنتين
+       يُكمّلها السلايدر تلقائيًا بصورة الواجهة + صور «نشاط العيادة» (بدون تكرار) */
+    var st = data.settings || {}
+    var heroSrcs = []
+    var heroAlts = []
+    ;(Array.isArray(data.heroSlides) ? data.heroSlides : []).forEach(function (sl) {
+      var u = imageUrl(sl.image, 900, 1200, true)
+      if (u) {
+        heroSrcs.push(u)
+        heroAlts.push(sl.alt || (sl.image && sl.image.alt) || '')
+      }
+    })
+    if (heroSrcs.length < 2) {
+      var heroUsed = {}
+      for (var hu0 = 0; hu0 < heroSrcs.length; hu0++) heroUsed[heroSrcs[hu0]] = 1
+      var pushHeroSrc = function (u, alt) {
+        if (u && !heroUsed[u]) {
+          heroUsed[u] = 1
+          heroSrcs.push(u)
+          heroAlts.push(alt || '')
+        }
+      }
+      pushHeroSrc(imageUrl(st.heroImage, 900, 1200, true), (st.heroImage && st.heroImage.alt) || '')
+      ;(data.gallery || []).forEach(function (g) {
+        pushHeroSrc(imageUrl(g.image, 900, 1200, true), (g.image && g.image.alt) || g.caption || '')
+      })
+    }
+    if (heroSrcs.length && window.orasHeroSlider) window.orasHeroSlider.setSlides(heroSrcs, heroAlts)
     renderServices(data.services || [])
     renderCases(data.cases || [])
     renderGallery(data.gallery || [])
