@@ -143,17 +143,17 @@ section{scroll-margin-top:92px; padding:96px 0; position:relative}
 .tb-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .tb-chip{
   display:inline-flex;align-items:center;gap:.5rem;color:#fff;font-size:.8rem;font-weight:700;line-height:1.4;
-  background:rgba(28,24,14,.34);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:.34rem .95rem;
-  backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.16);transition:.25s;
+  background:rgba(28,24,14,.18);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:.34rem .95rem;
+  backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);transition:.25s;
 }
 a.tb-chip:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent;transform:translateY(-1px)}
 .tb-chip svg{width:15px;height:15px;flex:none;opacity:.9}
 .tb-socials{display:flex;gap:7px}
 .tb-socials a{
   width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;
-  background:rgba(28,24,14,.34);border:1px solid rgba(255,255,255,.22);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:.25s;
+  background:rgba(28,24,14,.18);border:1px solid rgba(255,255,255,.3);
+  backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);transition:.25s;
 }
 .tb-socials a:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent;transform:translateY(-2px)}
 .tb-socials a svg{width:16px;height:16px}
@@ -389,18 +389,18 @@ h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:900;line-height:1.4;margin-b
 /* ===== ألبوم نشاط العيادة — زجاج شفاف يطفو فوق الموقع ===== */
 .album-modal{
   position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;padding:16px;
-  background:rgba(28,24,14,.22);
-  backdrop-filter:blur(26px) saturate(125%);-webkit-backdrop-filter:blur(26px) saturate(125%);
+  background:rgba(28,24,14,.16);
+  backdrop-filter:blur(30px) saturate(130%);-webkit-backdrop-filter:blur(30px) saturate(130%);
 }
 .album-modal.open{display:flex;animation:albumFade .26s ease both}
 @keyframes albumFade{from{opacity:0}to{opacity:1}}
 .album-panel{
   position:relative;width:min(1060px,100%);max-height:min(92vh,880px);overflow:auto;overscroll-behavior:contain;
-  /* زجاج شفافة: الموقع يظهر من خلفها مع الضباب */
-  background-color:rgba(255,253,246,.3);
-  background-image:linear-gradient(165deg,rgba(255,255,255,.34) 0%,rgba(255,253,246,.1) 55%,rgba(255,253,246,.2) 100%);
-  border:1px solid rgba(255,255,255,.5);border-radius:26px;
-  backdrop-filter:blur(30px) saturate(175%);-webkit-backdrop-filter:blur(30px) saturate(175%);
+  /* زجاج ضبابي أكثر شفافية: الموقع يظهر من خلفها بوضوح أكبر */
+  background-color:rgba(255,253,246,.18);
+  background-image:linear-gradient(165deg,rgba(255,255,255,.24) 0%,rgba(255,253,246,.06) 55%,rgba(255,253,246,.14) 100%);
+  border:1px solid rgba(255,255,255,.55);border-radius:26px;
+  backdrop-filter:blur(38px) saturate(180%);-webkit-backdrop-filter:blur(38px) saturate(180%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 .5px rgba(255,255,255,.28),0 40px 90px rgba(24,20,12,.38);
   padding:26px 26px 22px;text-align:right;
   animation:albumIn .34s cubic-bezier(.2,.8,.25,1) both;
