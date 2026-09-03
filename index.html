@@ -373,39 +373,49 @@ h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:900;line-height:1.4;margin-b
 /* على اللمس لا يوجد hover — نُظهر التعليق دائماً */
 @media (hover:none){.gal-item figcaption{opacity:1;transform:none}}
 
-/* ===== ألبوم نشاط العيادة — نافذة فوق الموقع مع ضباب في الخلف ===== */
+/* ===== ألبوم نشاط العيادة — زجاج شفاف يطفو فوق الموقع ===== */
 .album-modal{
   position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;padding:16px;
-  background:rgba(30,25,14,.42);
-  backdrop-filter:blur(20px) saturate(120%);-webkit-backdrop-filter:blur(20px) saturate(120%);
+  background:rgba(28,24,14,.22);
+  backdrop-filter:blur(26px) saturate(125%);-webkit-backdrop-filter:blur(26px) saturate(125%);
 }
 .album-modal.open{display:flex;animation:albumFade .26s ease both}
 @keyframes albumFade{from{opacity:0}to{opacity:1}}
 .album-panel{
   position:relative;width:min(1060px,100%);max-height:min(92vh,880px);overflow:auto;overscroll-behavior:contain;
-  background-color:rgba(255,253,246,.88);
-  background-image:linear-gradient(165deg,rgba(255,255,255,.8) 0%,rgba(255,253,246,.44) 100%);
-  border:1px solid var(--glass-border);border-radius:26px;
-  backdrop-filter:blur(26px) saturate(165%);-webkit-backdrop-filter:blur(26px) saturate(165%);
-  box-shadow:var(--glass-inset),0 40px 90px rgba(24,20,12,.45);
+  /* زجاج شفافة: الموقع يظهر من خلفها مع الضباب */
+  background-color:rgba(255,253,246,.3);
+  background-image:linear-gradient(165deg,rgba(255,255,255,.34) 0%,rgba(255,253,246,.1) 55%,rgba(255,253,246,.2) 100%);
+  border:1px solid rgba(255,255,255,.5);border-radius:26px;
+  backdrop-filter:blur(30px) saturate(175%);-webkit-backdrop-filter:blur(30px) saturate(175%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 .5px rgba(255,255,255,.28),0 40px 90px rgba(24,20,12,.38);
   padding:26px 26px 22px;text-align:right;
   animation:albumIn .34s cubic-bezier(.2,.8,.25,1) both;
+}
+/* لمعان الزجاج أعلى النافذة — يعطي إحساس «لوح زجاجي» */
+.album-panel::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,rgba(255,255,255,0) 40%);
 }
 @keyframes albumIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
 .album-x{
   position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:50%;z-index:3;
-  border:1px solid var(--line);background:rgba(255,255,255,.85);color:var(--gold-ink);
+  border:1px solid rgba(255,255,255,.55);color:var(--gold-ink);
+  background:rgba(255,255,255,.42);
+  backdrop-filter:blur(12px) saturate(150%);-webkit-backdrop-filter:blur(12px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 6px 16px rgba(24,20,12,.18);
   font-size:1.2rem;font-weight:900;line-height:1;cursor:pointer;transition:.25s;
 }
 .album-x:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent;transform:rotate(90deg)}
-.album-head{margin-bottom:18px;padding-inline-start:54px}
-.album-head h3{font-size:clamp(1.15rem,2.5vw,1.72rem);font-weight:900;line-height:1.4}
-.album-head p{color:var(--ink-soft);font-size:.99rem;line-height:1.9;margin-top:8px;white-space:pre-line}
+.album-head{margin-bottom:18px;padding-inline-start:54px;position:relative;z-index:1}
+.album-head h3{font-size:clamp(1.15rem,2.5vw,1.72rem);font-weight:900;line-height:1.4;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.album-head p{color:var(--ink-soft);font-size:.99rem;line-height:1.9;margin-top:8px;white-space:pre-line;text-shadow:0 1px 0 rgba(255,255,255,.4)}
 .album-stage{
-  position:relative;border-radius:18px;overflow:hidden;aspect-ratio:16/10;
-  background:radial-gradient(circle at 50% 40%,#2C2617 0%,#191509 100%);
-  border:1px solid rgba(255,255,255,.18);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 40px rgba(24,20,12,.3);
+  position:relative;z-index:1;border-radius:18px;overflow:hidden;aspect-ratio:16/10;
+  background:linear-gradient(180deg,rgba(28,24,14,.7) 0%,rgba(22,18,10,.82) 100%);
+  backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 16px 40px rgba(24,20,12,.3);
 }
 .album-stage img{width:100%;height:100%;object-fit:contain;display:block;transition:opacity .25s;cursor:zoom-in}
 .album-stage img.is-loading{opacity:.25}
@@ -431,18 +441,25 @@ h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:900;line-height:1.4;margin-b
 }
 .album-zoom:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent}
 .album-zoom svg{width:18px;height:18px}
-.album-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:14px}
-.album-caption{color:var(--ink-soft);font-size:.92rem;font-weight:700;line-height:1.7}
-.album-thumbs{display:flex;gap:10px;margin-top:14px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.album-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:14px;position:relative;z-index:1}
+.album-caption{color:var(--ink-soft);font-size:.92rem;font-weight:700;line-height:1.7;text-shadow:0 1px 0 rgba(255,255,255,.45)}
+.album-thumbs{display:flex;gap:10px;margin-top:14px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin;position:relative;z-index:1}
 .album-thumbs button{
   flex:none;width:92px;height:68px;border-radius:12px;overflow:hidden;padding:0;cursor:pointer;
-  border:2px solid rgba(168,132,28,.18);background:rgba(44,38,23,.1);transition:.25s;
+  border:2px solid rgba(255,255,255,.5);background:rgba(255,255,255,.24);transition:.25s;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 14px rgba(24,20,12,.16);
 }
 .album-thumbs button img{width:100%;height:100%;object-fit:cover;display:block}
-.album-thumbs button:hover{border-color:rgba(168,132,28,.5)}
-.album-thumbs button.on{border-color:var(--gold);box-shadow:0 6px 16px rgba(201,162,39,.4);transform:translateY(-2px)}
+.album-thumbs button:hover{border-color:rgba(255,255,255,.85)}
+.album-thumbs button.on{border-color:var(--gold);box-shadow:0 6px 18px rgba(201,162,39,.45);transform:translateY(-2px)}
 .album-thumbs[hidden]{display:none}
 body.album-locked{overflow:hidden}
+/* إن لم يدعم المتصفح الضباب: نُعتّم الزجاج قليلاً ليبقى النص مقروءاً */
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  .album-modal{background:rgba(28,24,14,.5)}
+  .album-panel{background-color:rgba(255,253,246,.94)}
+  .album-panel::before{display:none}
+}
 @media (prefers-reduced-motion:reduce){
   .album-modal.open,.album-panel{animation:none}
   .album-x:hover{transform:none}
