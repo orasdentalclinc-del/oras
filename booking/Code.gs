@@ -4,11 +4,14 @@
 // الحجز بالساعة: 12 ساعة متواصلة من 8:00 صباحاً حتى 8:00 مساءً
 // (ساعات الحجز: 08:00 ، 09:00 ، ... ، 19:00 — كل ساعة فترة مستقلة بسعتها الخاصة)
 //
-// التقييمات: يرسل الموقع التقييم بحقل rating فيُحفظ في لوحة تحكم Sanity فقط
-// (الحالة: قيد المراجعة) — بدون أي Google Sheet.
+// التقييمات: يرسل الموقع التقييم بحقل rating فيُحفظ في لوحة تحكم Sanity
+// (الحالة: قيد المراجعة)، وتُسجَّل إجابات الاستبيان في تبويب «استبيانات»
+// داخل نفس ملف Google Sheets — منفصلة تماماً عن تبويب «حجوزات» المواعيد.
 
 var CONFIG = {
   SHEET_NAME: 'حجوزات',
+  // تبويب منفصل لإجابات الاستبيان — لا يختلط بجدول الحجوزات
+  SURVEY_SHEET_NAME: 'استبيانات',
   MAX_PER_HOUR: 4,
   OPEN_HOUR: 8,
   CLOSE_HOUR: 20,
@@ -92,6 +95,90 @@ function getOrCreateSheet() {
     sheet.setFrozenRows(1);
   }
   return sheet;
+}
+
+// الحصول على ورقة «الاستبيانات» (منفصلة عن ورقة «الحجوزات») وإنشاؤها عند الحاجة
+function getOrCreateSurveySheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(CONFIG.SURVEY_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(CONFIG.SURVEY_SHEET_NAME);
+  }
+  return sheet;
+}
+
+// التأكد من وجود صف الترويسات، وإرجاع أسماء الأعمدة الحالية بالترتيب
+function ensureSurveyHeaders(sheet, questions) {
+  var baseHeaders = ['الطابع الزمني', 'اسم المراجع', 'رقم الهاتف', 'التقييم العام (1-5)'];
+  var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
+
+  // جمع الأسئلة (نصوص فريدة) بترتيب ورودها في هذا الإرسال
+  var qList = [];
+  for (var i = 0; i < (questions || []).length; i++) {
+    var q = String(questions[i].question || '').trim();
+    if (q && qList.indexOf(q) === -1) qList.push(q);
+  }
+
+  var headers;
+  if (lastRow === 0 || lastCol === 0) {
+    // ورقة جديدة فارغة — نكتب الترويسات كاملة
+    headers = baseHeaders.concat(qList);
+    writeSurveyHeaders(sheet, headers);
+    return headers;
+  }
+
+  // ورقة فيها ترويسات سابقة — نقرؤها ونضيف أي سؤال جديد لم يُضف من قبل
+  headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0]
+    .map(function (h) { return String(h || '').trim(); });
+  var changed = false;
+  for (var j = 0; j < qList.length; j++) {
+    if (headers.indexOf(qList[j]) === -1) {
+      headers.push(qList[j]);
+      changed = true;
+    }
+  }
+  if (changed) {
+    writeSurveyHeaders(sheet, headers);
+  }
+  return headers;
+}
+
+// كتابة صف الترويسات مع تنسيق مماثل لجدول الحجوزات
+function writeSurveyHeaders(sheet, headers) {
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  var headerRange = sheet.getRange(1, 1, 1, headers.length);
+  headerRange.setBackground('#C9A227');
+  headerRange.setFontColor('#FFFFFF');
+  headerRange.setFontWeight('bold');
+  sheet.setFrozenRows(1);
+}
+
+// تسجيل إجابات الاستبيان في تبويب «استبيانات» — منفصل عن «الحجوزات»
+function saveSurveyToSheet(review) {
+  var answers = (review && review.surveyAnswers && review.surveyAnswers.length)
+    ? review.surveyAnswers
+    : [];
+  if (!answers.length) return true; // لا استبيان في هذا الإرسال — لا نسجّل شيئاً
+
+  var sheet = getOrCreateSurveySheet();
+  var headers = ensureSurveyHeaders(sheet, answers);
+
+  // صف واحد لكل مراجع، مع درجات الأسئلة في أعمدة مطابقة
+  var row = new Array(headers.length);
+  for (var c = 0; c < row.length; c++) row[c] = '';
+  row[0] = new Date();
+  row[1] = String(review.name || '').slice(0, 120);
+  row[2] = String(review.phone || '').slice(0, 40);
+  row[3] = review.rating || '';
+
+  for (var i = 0; i < answers.length; i++) {
+    var a = answers[i];
+    var idx = headers.indexOf(String(a.question || '').trim());
+    if (idx >= 0) row[idx] = a.score;
+  }
+  sheet.appendRow(row);
+  return true;
 }
 
 // تنسيق التاريخ كـ YYYY-MM-DD حسب المنطقة الزمنية للعيادة
@@ -364,7 +451,8 @@ function testReview() {
     }
   });
   Logger.log('نتيجة الاختبار: ' + res.getContent());
-  Logger.log('افتح اللوحة → «⭐ آراء المرضى» لتجد التقييم بحالة «قيد المراجعة».');
+  Logger.log('افتح اللوحة → «⭐ آراء المرضى» لتجد التقييم بحالة «قيد المراجعة»،');
+  Logger.log('وافحص تبويب «استبيانات» في Google Sheets — سترى صفاً بإجابات الأسئلة (منفصل عن «الحجوزات»).');
 }
 
 // إرجاع استجابة JSON
@@ -422,14 +510,24 @@ function handleReviewPost(data) {
     status: 'pending'
   };
 
-  // الحفظ في Sanity — التخزين الوحيد، بدون Google Sheet
+  // تسجيل إجابات الاستبيان في تبويب «استبيانات» (منفصل عن «الحجوزات»)
+  // — يُنفَّذ دائماً وبشكل مستقل حتى لو تعذّر الحفظ في Sanity.
+  var sheetResult = { ok: true };
+  if (surveyAnswers.length) {
+    try {
+      saveSurveyToSheet(review);
+    } catch (e) {
+      sheetResult = { ok: false, error: 'تعذّر تسجيل الاستبيان في Google Sheets: ' + e.toString() };
+    }
+  }
+
+  // الحفظ في Sanity (لوحة التحكم) بانتظار المراجعة
   var saved = saveReviewToSanity(review);
   if (saved.ok) {
-    return jsonResponse({
-      ok: true,
-      id: saved.id,
-      message: 'تم حفظ التقييم في لوحة التحكم بانتظار المراجعة'
-    });
+    var msg = sheetResult.ok
+      ? 'تم حفظ التقييم في لوحة التحكم وتسجيل الاستبيان في جدول «استبيانات» بانتظار المراجعة'
+      : 'تم حفظ التقييم في لوحة التحكم، لكن تعذّر تسجيل الاستبيان في Google Sheets';
+    return jsonResponse({ ok: true, id: saved.id, message: msg });
   }
   return jsonResponse({ ok: false, error: saved.error });
 }
