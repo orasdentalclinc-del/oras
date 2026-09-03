@@ -276,8 +276,34 @@ h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:900;line-height:1.4;margin-b
 /* ===== About ===== */
 .about-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:64px;align-items:center}
 .about-visual{position:relative}
-.about-visual img{border-radius:var(--r);border:8px solid rgba(255,255,255,.5);box-shadow:0 0 0 1px rgba(255,255,255,.55),var(--shadow);position:relative;z-index:2;height:480px;width:100%;object-fit:cover}
 .about-visual::before{content:'';position:absolute;inset:-22px -22px 22px 22px;border-radius:var(--r);background:var(--grad-soft);border:1px solid var(--line);z-index:1}
+/* شرائح «من نحن» — تتحرك عكس اتجاه صور صفحة الهبوط */
+.about-slider{position:relative;z-index:2;height:480px;border-radius:var(--r);overflow:hidden;border:8px solid rgba(255,255,255,.5);box-shadow:0 0 0 1px rgba(255,255,255,.55),var(--shadow)}
+.about-slide{position:absolute;inset:0;margin:0;opacity:0;transition:opacity 1.2s ease}
+.about-slide.is-active{opacity:1}
+.about-slide img{width:100%;height:100%;object-fit:cover;transform:scale(1.03)}
+/* عكس اتجاه heroKb: إلى اليمين (+1.5%) بدل اليسار */
+.about-slide.is-active img{animation:aboutKb 9s ease-out forwards}
+@keyframes aboutKb{from{transform:scale(1.03) translateX(0)}to{transform:scale(1.16) translateX(1.5%)}}
+.about-cap{position:absolute;inset-inline:0;bottom:0;padding:48px 20px 30px;background:linear-gradient(to top,rgba(24,20,12,.86),rgba(24,20,12,0));color:#fff;text-align:right}
+.about-cap b{display:block;font-size:1.06rem;font-weight:900;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+.about-cap p{font-size:.87rem;line-height:1.7;color:rgba(255,255,255,.92);margin-top:4px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.about-cap[hidden]{display:none}
+.ab-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:42px;height:42px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.55);background:rgba(255,253,246,.72);color:var(--gold-ink);
+  display:grid;place-items:center;cursor:pointer;
+  backdrop-filter:blur(10px) saturate(150%);-webkit-backdrop-filter:blur(10px) saturate(150%);
+  box-shadow:var(--glass-shadow-sm);transition:.25s;
+}
+.ab-arrow:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent}
+.ab-prev{right:12px}
+.ab-next{left:12px}
+.ab-dots{position:absolute;bottom:10px;left:0;right:0;z-index:3;display:flex;justify-content:center;gap:7px}
+.ab-dot{width:8px;height:8px;border-radius:999px;border:0;padding:0;background:rgba(255,255,255,.55);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:width .3s,background .3s}
+.ab-dot.is-active{width:22px;background:var(--gold)}
+.about-slider.single .ab-arrow,.about-slider.single .ab-dots{display:none}
+@media (prefers-reduced-motion:reduce){.about-slide{transition:none}.about-slide.is-active img{animation:none}}
 .exp-badge{
   position:absolute;z-index:3;bottom:26px;left:-26px;background:var(--grad-gold);color:#4A3A0A;
   border:1px solid rgba(255,255,255,.55);
@@ -952,8 +978,24 @@ section + section::after{
   <div class="container">
     <div class="about-grid">
       <div class="about-visual reveal">
-        <img data-img="about" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FBF6E7'/><stop offset='1' stop-color='%23F3E5BF'/></linearGradient></defs><rect width='800' height='600' fill='url%28%23g%29'/><g transform='translate%28272 110%29 scale%284%29'><path d='M32 12c-5 0-6.5 3-10.5 3-5.5 0-8 4-8 9.5 0 10 4.8 15 6.8 25 .9 4.8 7 4.7 7.9-.2.7-3.4 1.6-7 3.8-7s3.1 3.6 3.8 7c.9 4.9 7 5 7.9.2 2-10 6.8-15 6.8-25 0-5.5-2.5-9.5-8-9.5-4 0-5.5-3-10.5-3z' fill='none' stroke='%23C9A227' stroke-opacity='.5' stroke-width='1.3'/></g><text x='400' y='450' text-anchor='middle' font-size='30' font-family='sans-serif' fill='%23A8841C'>%D8%A7%D9%84%D8%B5%D9%88%D8%B1%D8%A9 %D8%AA%D9%8F%D8%B6%D8%A7%D9%81 %D9%85%D9%86 %D9%84%D9%88%D8%AD%D8%A9 %D8%A7%D9%84%D8%AA%D8%AD%D9%83%D9%85</text></svg>" alt="غرفة علاج مجهزة في عيادة أوراس">
-        <div class="exp-badge" id="expBadge" hidden><b id="aboutYears"></b><span id="aboutYearsLabel"></span></div>
+      <div class="about-slider" id="aboutSlider" role="region" aria-roledescription="عرض شرائح" aria-label="جولة مصورة في عيادة أوراس">
+        <figure class="about-slide is-active">
+          <img src="images/bg/about.jpg" alt="غرفة علاج مجهزة في عيادة أوراس" draggable="false">
+          <figcaption class="about-cap"><b>غرف علاج هادئة</b><p>كراسي علاج رقمية حديثة مع عزل كامل يضمن لك الخصوصية والراحة.</p></figcaption>
+        </figure>
+        <figure class="about-slide">
+          <img src="images/bg/gallery.jpg" alt="ممر غرف العلاج في عيادة أوراس" loading="lazy" draggable="false">
+          <figcaption class="about-cap"><b>بيئة معقّمة يومياً</b><p>بروتوكول تعقيم صارم بعد كل مريض وبأجهزة معتمدة عالمياً.</p></figcaption>
+        </figure>
+        <figure class="about-slide">
+          <img src="images/bg/doctors.jpg" alt="الفريق الطبي في عيادة أوراس" loading="lazy" draggable="false">
+          <figcaption class="about-cap"><b>فريق استشاري متكامل</b><p>أطباء في كل تخصصات طب الأسنان تحت سقف واحد وخطة علاج واضحة.</p></figcaption>
+        </figure>
+        <button type="button" class="ab-arrow ab-prev" aria-label="الصورة السابقة"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button type="button" class="ab-arrow ab-next" aria-label="الصورة التالية"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="ab-dots"></div>
+      </div>
+      <div class="exp-badge" id="expBadge" hidden><b id="aboutYears"></b><span id="aboutYearsLabel"></span></div>
       </div>
       <div class="about-text reveal">
         <span class="kicker">من نحن</span>
@@ -1947,6 +1989,124 @@ window.orasHeroSlider = (function () {
     root.innerHTML = '';
     slides = clean.map((u, i) => makeSlide(u, alts && alts[i], i === 0));
     slides.forEach((s) => root.appendChild(s));
+    finalize();
+  }
+
+  adoptStatic();
+  return { setSlides: setSlides, state: () => ({ pos: pos, count: count() }) };
+})();
+/* ═══════════ شرائح «من نحن»: تتحرك عكس اتجاه شرائح الواجهة، لكل صورة عنوان ووصف ═══════════ */
+window.orasAboutSlider = (function () {
+  const root = $('#aboutSlider');
+  if (!root) return null;
+  const dotsBox = $('.ab-dots', root);
+  const prevBtn = $('.ab-prev', root);
+  const nextBtn = $('.ab-next', root);
+  const reduceMotion = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false };
+
+  let slides = [];
+  let dots = [];
+  let pos = 0;
+  let autoTimer = null;
+  let slideKey = '';
+
+  const count = () => slides.length;
+  const canSlide = () => count() > 1;
+
+  function paint() {
+    slides.forEach((s, i) => s.classList.toggle('is-active', i === pos));
+    dots.forEach((d, i) => {
+      d.classList.toggle('is-active', i === pos);
+      if (i === pos) d.setAttribute('aria-current', 'true');
+      else d.removeAttribute('aria-current');
+    });
+  }
+  function goTo(i) {
+    if (!slides.length) return;
+    pos = ((i % count()) + count()) % count();
+    paint();
+    restartAuto();
+  }
+  const next = () => goTo(pos + 1);
+  const prev = () => goTo(pos - 1);
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  function startAuto() {
+    if (autoTimer || !canSlide() || reduceMotion.matches || document.hidden) return;
+    autoTimer = setInterval(next, 7000);
+  }
+  function stopAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } }
+  function restartAuto() { stopAuto(); startAuto(); }
+  document.addEventListener('visibilitychange', () => (document.hidden ? stopAuto() : startAuto()));
+
+  function buildDots() {
+    dotsBox.innerHTML = '';
+    dots = [];
+    for (let i = 0; i < count(); i++) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ab-dot';
+      b.setAttribute('aria-label', 'الانتقال إلى الصورة ' + (i + 1));
+      b.addEventListener('click', () => goTo(i));
+      dotsBox.appendChild(b);
+      dots.push(b);
+    }
+  }
+
+  function makeSlide(item, eager) {
+    const fig = document.createElement('figure');
+    fig.className = 'about-slide';
+    const img = document.createElement('img');
+    img.src = item.src;
+    img.alt = item.alt || item.title || 'من عيادة أوراس';
+    img.loading = eager ? 'eager' : 'lazy';
+    img.decoding = 'async';
+    img.draggable = false;
+    fig.appendChild(img);
+    if (item.title || item.desc) {
+      const cap = document.createElement('figcaption');
+      cap.className = 'about-cap';
+      if (item.title) cap.appendChild(document.createElement('b')).textContent = item.title;
+      if (item.desc) {
+        const p = document.createElement('p');
+        p.textContent = item.desc;
+        cap.appendChild(p);
+      }
+      fig.appendChild(cap);
+    }
+    return fig;
+  }
+
+  function finalize() {
+    root.classList.toggle('single', !canSlide());
+    pos = 0;
+    buildDots();
+    paint();
+    startAuto();
+  }
+
+  /* تبنّي الشرائح الموجودة في HTML */
+  function adoptStatic() {
+    slides = $$('.about-slide', root);
+    slideKey = slides.map((s) => ((s.querySelector('img') || {}).src || '')).join('|');
+    finalize();
+  }
+
+  /* استبدال الشرائح ببيانات لوحة التحكم {src,alt,title,desc} */
+  function setSlides(items) {
+    const clean = (Array.isArray(items) ? items : []).filter((x) => x && x.src);
+    const key = clean.map((x) => x.src).join('|');
+    if (!clean.length || key === slideKey) return;
+    slideKey = key;
+    stopAuto();
+    const arrows = $$('.ab-arrow, .ab-dots', root);
+    root.innerHTML = '';
+    slides = clean.map((it, i) => makeSlide(it, i === 0));
+    slides.forEach((s) => root.appendChild(s));
+    arrows.forEach((a) => root.appendChild(a));
     finalize();
   }
 

@@ -85,6 +85,27 @@ export default {
       type: 'image',
       options: {hotspot: true},
       group: 'about',
+      description: 'تُستخدم كشريحة وحيدة إن لم تُضف شرائح في الحقل أدناه.',
+    },
+    {
+      name: 'aboutSlides',
+      title: 'شرائح «من نحن» (صورة + عنوان + وصف)',
+      type: 'array',
+      group: 'about',
+      description:
+        'تظهر في قسم «من نحن» كشرائح تتحرك عكس اتجاه صور الواجهة، وتحت كل صورة عنوانها ووصفها. إن تُركت فارغة تُستخدم الصور الافتراضية.',
+      of: [
+        {
+          type: 'object',
+          name: 'aboutSlide',
+          fields: [
+            {name: 'image', title: 'الصورة', type: 'image', options: {hotspot: true}},
+            {name: 'title', title: 'العنوان', type: 'string', validation: (R) => R.required()},
+            {name: 'description', title: 'الوصف', type: 'text', rows: 2},
+          ],
+          preview: {select: {title: 'title', subtitle: 'description', media: 'image'}},
+        },
+      ],
     },
 
     // ===== الاتصال =====

@@ -182,7 +182,7 @@
     '{',
     '"settings": *[_type == "siteSettings"][0]{',
       'clinicName, tagline, logo, heroTitle, heroSubtitle, heroImage, heroHighlights,',
-    'aboutTitle, aboutBody, aboutImage, stats,',
+      'aboutTitle, aboutBody, aboutImage, aboutSlides, stats,',
     'phone, whatsapp, email, addressLine, mapsUrl, mapEmbedUrl, openingHours, socialLinks,',
     'sectionBackgrounds, sectionHeadings, seo, surveyQuestions',
     '},',
@@ -400,7 +400,29 @@
         })
       }
     }
-    setDataImg('about', s.aboutImage, 900, null, false)
+    /* شرائح «من نحن» من اللوحة — وإن غابت تُستخدم صورة من نحن وحدها */
+    if (window.orasAboutSlider) {
+      var slidesCms = (Array.isArray(s.aboutSlides) ? s.aboutSlides : [])
+        .map(function (sl) {
+          return {
+            src: imageUrl(sl.image, 1000, 800, true),
+            alt: (sl.image && sl.image.alt) || sl.title || '',
+            title: sl.title ? String(sl.title) : '',
+            desc: sl.description ? String(sl.description) : '',
+          }
+        })
+        .filter(function (x) { return x.src })
+      if (slidesCms.length) {
+        window.orasAboutSlider.setSlides(slidesCms)
+      } else {
+        var aboutOne = imageUrl(s.aboutImage, 1000, 800, true)
+        if (aboutOne) {
+          window.orasAboutSlider.setSlides([
+            {src: aboutOne, alt: (s.aboutImage && s.aboutImage.alt) || '', title: '', desc: ''},
+          ])
+        }
+      }
+    }
 
     /* الأرقام — تُعرض فقط عند إدخال قيم حقيقية من لوحة التحكم */
     var stats = (Array.isArray(s.stats) ? s.stats : []).filter(function (st) {
