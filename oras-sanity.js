@@ -448,8 +448,6 @@
       }
       var d1 = $('#waDirect')
       if (d1) d1.setAttribute('href', msg('مرحباً، أرغب بحجز موعد في ' + (name || 'العيادة') + '.'))
-      var d2 = $('#fabWa')
-      if (d2) d2.setAttribute('href', msg('مرحباً، أرغب بالاستفسار عن خدمات ' + (name || 'العيادة') + '.'))
       var d3 = $('#footWa')
       if (d3) d3.setAttribute('href', link)
     }
@@ -522,13 +520,12 @@
       setText('#mapBarLine', bar.join(' • '))
     }
 
-    /* روابط التواصل الاجتماعي — تملأ أيقونات الفوتر وأزرار القائمة العائمة */
+    /* روابط التواصل الاجتماعي — تملأ أيقونات الفوتر ودوائر الشريط العلوي */
     if (Array.isArray(s.socialLinks) && s.socialLinks.length) {
       var anchors = $$('.socials a, .tb-socials a')
         .filter(function (a) {
           return a.id !== 'footWa'
         })
-        .concat($$('#fabFb, #fabIg, #fabTt'))
       var used = 0
       s.socialLinks.forEach(function (l) {
         var href = safeUrl(l && l.url)
