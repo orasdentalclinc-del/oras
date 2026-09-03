@@ -103,6 +103,22 @@ for (const [name, n] of counts) {
   else no(`${name}: لا يوجد محتوى منشور`)
 }
 
+// ─── 3.4) ألبومات نشاط العيادة ───
+const galItems = result.gallery || []
+if (galItems.length) {
+  const withAlbum = galItems.filter((g) => Array.isArray(g.images) && g.images.length)
+  const photoCount = withAlbum.reduce((n, g) => n + g.images.length, 0)
+  const withText = galItems.filter((g) => g.description && String(g.description).trim())
+  ok(`ألبومات الصور: ${withAlbum.length} من ${galItems.length} نشاط — بإجمالي ${photoCount} صورة`)
+  ok(`نصوص تعريفية للأنشطة: ${withText.length} من ${galItems.length}`)
+  if (withAlbum.length < galItems.length) {
+    inf('بعض الأنشطة بلا ألبوم — أضف صوراً من حقل «ألبوم الصور» لتظهر شارة عدد الصور على البطاقة')
+  }
+  if (withText.length < galItems.length) {
+    inf('بعض الأنشطة بلا نص تعريفي — اكتبه في حقل «النص التعريفي بالنشاط» ليظهر أعلى الألبوم')
+  }
+}
+
 // ─── 3.5) التقييمات والاستبيان ───
 hdr('4) التقييمات والاستبيان')
 const pending = (result.reviews || []).filter((r) => r.status === 'pending').length
