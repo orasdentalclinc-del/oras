@@ -196,8 +196,8 @@
     '"cases": *[_type == "caseStudy" && isPublished == true]|order(order asc){',
     '_id, title, description, sessions, chips, beforeImage, afterImage, "serviceTitle": service->title',
     '},',
-    '"gallery": *[_type == "galleryItem" && isActive != false]|order(order asc){',
-    '_id, image, caption',
+      '"gallery": *[_type == "galleryItem" && isActive != false]|order(order asc){',
+    '_id, caption, description, image, images',
     '},',
     '"doctors": *[_type == "doctor"]|order(order asc){',
     '_id, name, role, bio, badge, photo',
@@ -428,7 +428,7 @@
     /* التواصل */
     var wa = digits(s.whatsapp)
     if (s.phone) {
-      ;['#heroPhone', '#sidePhone', '#footPhone'].forEach(function (sel) {
+      ;['#heroPhone', '#sidePhone', '#footPhone', '#tbPhone'].forEach(function (sel) {
         setText(sel, s.phone)
       })
       /* أزرار الاتصال المباشر — بروتوكول tel: */
@@ -462,11 +462,16 @@
         a.setAttribute('href', 'mailto:' + s.email)
         mail.appendChild(a)
       }
+      /* الشريط العلوي */
+      setText('#tbEmail', s.email)
+      var tbMail = $('#tbEmailLink')
+      if (tbMail) tbMail.setAttribute('href', 'mailto:' + s.email)
     }
 
     var addr = String(s.addressLine || '').trim()
     if (addr) {
       setText('#footAddr', addr.replace(/\s*\n\s*/g, ' — '))
+      setText('#tbAddr', addr.replace(/\s*\n\s*/g, '، '))
       var lines = addr.split(/\n/)
       if (lines.length > 1) {
         setText('#addrTitle', lines[0].trim())
@@ -504,6 +509,7 @@
       setText('#hoursWeekLabel', hours[0].days)
       setText('#hoursWeek', hours[0].hours)
       setText('#footHours', [hours[0].days, hours[0].hours].filter(Boolean).join(': '))
+      setText('#tbHoursTxt', [hours[0].days, hours[0].hours].filter(Boolean).join(': '))
     }
     if (hours[1]) {
       setText('#hoursFriLabel', hours[1].days)
@@ -518,7 +524,7 @@
 
     /* روابط التواصل الاجتماعي — تملأ أيقونات الفوتر وأزرار القائمة العائمة */
     if (Array.isArray(s.socialLinks) && s.socialLinks.length) {
-      var anchors = $$('.socials a')
+      var anchors = $$('.socials a, .tb-socials a')
         .filter(function (a) {
           return a.id !== 'footWa'
         })
@@ -860,18 +866,78 @@
     grid.removeAttribute('hidden')
   }
 
-  /* ---------- معرض الصور ---------- */
+  /* ---------- نشاط العيادة (بطاقة + ألبوم صور) ---------- */
+
+  /**
+   * يجمع صور النشاط في قائمة واحدة:
+   * صورة الغلاف أولاً (إن وُجدت) ثم كل صور الألبوم، بدون تكرار.
+   */
+  function galleryPhotos(g) {
+    var out = []
+    var seen = {}
+    var fallbackAlt = g.caption || 'صورة من العيادة'
+    function add(source, caption) {
+      var big = imageUrl(source, 1400, 0, false)
+      if (!big || seen[big]) return
+      seen[big] = 1
+      var cap = String(caption || '').trim()
+      out.push({
+        src: big,
+        thumb: imageUrl(source, 240, 240, true),
+        caption: cap,
+        alt: (source && source.alt) || cap || fallbackAlt,
+      })
+    }
+    add(g.image, (g.image && g.image.alt) || '')
+    var album = Array.isArray(g.images) ? g.images : []
+    album.forEach(function (photo) {
+      add(photo, photo && photo.caption)
+    })
+    return out
+  }
+
   function renderGallery(list) {
     var grid = $('#galGrid')
     if (!grid || !list || !list.length) return
     clear(grid)
+    var albums = []
     list.forEach(function (g) {
+      var photos = galleryPhotos(g)
+      if (!photos.length) return /* نشاط بلا صور — لا تُعرض بطاقته */
+      var title = String(g.caption || photos[0].caption || 'نشاط من العيادة').trim()
+
       var fig = make('figure', 'gal-item reveal in')
-      var alt = (g.image && g.image.alt) || g.caption || 'صورة من العيادة'
-      fig.appendChild(imgEl(g.image, alt, 700, 700, true))
-      if (g.caption) fig.appendChild(make('figcaption', null, g.caption))
+      /* يربط البطاقة بألبومها — يقرأه سكربت الموقع لفتح نافذة الألبوم */
+      fig.setAttribute('data-album', String(albums.length))
+
+      var cover = document.createElement('img')
+      cover.setAttribute('loading', 'lazy')
+      cover.setAttribute(
+        'src',
+        imageUrl(g.image, 700, 700, true) ||
+          imageUrl(Array.isArray(g.images) ? g.images[0] : null, 700, 700, true) ||
+          photos[0].thumb ||
+          photos[0].src
+      )
+      cover.setAttribute('alt', (g.image && g.image.alt) || title)
+      fig.appendChild(cover)
+
+      if (photos.length > 1) {
+        var badge = make('span', 'gal-count', photos.length + ' صور')
+        badge.setAttribute('aria-hidden', 'true')
+        fig.appendChild(badge)
+      }
+      fig.appendChild(make('figcaption', null, title))
+
+      albums.push({
+        title: title,
+        description: g.description ? String(g.description) : '',
+        photos: photos,
+      })
       grid.appendChild(fig)
     })
+    /* إرسال الألبومات إلى نافذة الألبوم في index.html */
+    if (typeof window.orasGalleryAlbums === 'function') window.orasGalleryAlbums(albums)
   }
 
   /* ---------- آراء المرضى (المعتمدة فقط) ---------- */
@@ -974,7 +1040,8 @@
       }
       pushHeroSrc(imageUrl(st.heroImage, 900, 1200, true), (st.heroImage && st.heroImage.alt) || '')
       ;(data.gallery || []).forEach(function (g) {
-        pushHeroSrc(imageUrl(g.image, 900, 1200, true), (g.image && g.image.alt) || g.caption || '')
+        var gSrc = g.image || (Array.isArray(g.images) ? g.images[0] : null)
+        pushHeroSrc(imageUrl(gSrc, 900, 1200, true), (gSrc && gSrc.alt) || g.caption || '')
       })
     }
     if (heroSrcs.length && window.orasHeroSlider) window.orasHeroSlider.setSlides(heroSrcs, heroAlts)
