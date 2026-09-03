@@ -361,6 +361,102 @@ h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:900;line-height:1.4;margin-b
   color:#fff;font-weight:800;font-size:.92rem;opacity:0;transform:translateY(8px);transition:.35s;
 }
 .gal-item:hover figcaption{opacity:1;transform:none}
+/* شارة عدد صور الألبوم */
+.gal-count{
+  position:absolute;top:12px;left:12px;z-index:2;display:inline-flex;align-items:center;gap:6px;
+  font-size:.76rem;font-weight:900;color:#4A3A0A;padding:.26rem .72rem;border-radius:999px;
+  background:var(--grad-gold);border:1px solid rgba(255,255,255,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 6px 16px rgba(61,53,36,.28);
+  pointer-events:none;
+}
+.gal-count svg{width:14px;height:14px}
+/* على اللمس لا يوجد hover — نُظهر التعليق دائماً */
+@media (hover:none){.gal-item figcaption{opacity:1;transform:none}}
+
+/* ===== ألبوم نشاط العيادة — نافذة فوق الموقع مع ضباب في الخلف ===== */
+.album-modal{
+  position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;padding:16px;
+  background:rgba(30,25,14,.42);
+  backdrop-filter:blur(20px) saturate(120%);-webkit-backdrop-filter:blur(20px) saturate(120%);
+}
+.album-modal.open{display:flex;animation:albumFade .26s ease both}
+@keyframes albumFade{from{opacity:0}to{opacity:1}}
+.album-panel{
+  position:relative;width:min(1060px,100%);max-height:min(92vh,880px);overflow:auto;overscroll-behavior:contain;
+  background-color:rgba(255,253,246,.88);
+  background-image:linear-gradient(165deg,rgba(255,255,255,.8) 0%,rgba(255,253,246,.44) 100%);
+  border:1px solid var(--glass-border);border-radius:26px;
+  backdrop-filter:blur(26px) saturate(165%);-webkit-backdrop-filter:blur(26px) saturate(165%);
+  box-shadow:var(--glass-inset),0 40px 90px rgba(24,20,12,.45);
+  padding:26px 26px 22px;text-align:right;
+  animation:albumIn .34s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes albumIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+.album-x{
+  position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:50%;z-index:3;
+  border:1px solid var(--line);background:rgba(255,255,255,.85);color:var(--gold-ink);
+  font-size:1.2rem;font-weight:900;line-height:1;cursor:pointer;transition:.25s;
+}
+.album-x:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent;transform:rotate(90deg)}
+.album-head{margin-bottom:18px;padding-inline-start:54px}
+.album-head h3{font-size:clamp(1.15rem,2.5vw,1.72rem);font-weight:900;line-height:1.4}
+.album-head p{color:var(--ink-soft);font-size:.99rem;line-height:1.9;margin-top:8px;white-space:pre-line}
+.album-stage{
+  position:relative;border-radius:18px;overflow:hidden;aspect-ratio:16/10;
+  background:radial-gradient(circle at 50% 40%,#2C2617 0%,#191509 100%);
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 40px rgba(24,20,12,.3);
+}
+.album-stage img{width:100%;height:100%;object-fit:contain;display:block;transition:opacity .25s;cursor:zoom-in}
+.album-stage img.is-loading{opacity:.25}
+.album-nav{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:46px;height:46px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.3);background:rgba(28,24,14,.45);color:#fff;cursor:pointer;
+  display:grid;place-items:center;font-size:1.5rem;line-height:1;transition:.25s;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.album-nav:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent}
+.album-nav[hidden]{display:none}
+.album-prev{right:12px}
+.album-next{left:12px}
+.album-badge{
+  position:absolute;top:12px;right:12px;z-index:2;font-size:.78rem;font-weight:900;color:#fff;
+  background:rgba(28,24,14,.55);border:1px solid rgba(255,255,255,.2);padding:.24rem .7rem;border-radius:999px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.album-zoom{
+  position:absolute;bottom:12px;left:12px;z-index:2;width:40px;height:40px;border-radius:12px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.25);background:rgba(28,24,14,.5);color:#fff;display:grid;place-items:center;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:.25s;
+}
+.album-zoom:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent}
+.album-zoom svg{width:18px;height:18px}
+.album-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:14px}
+.album-caption{color:var(--ink-soft);font-size:.92rem;font-weight:700;line-height:1.7}
+.album-thumbs{display:flex;gap:10px;margin-top:14px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.album-thumbs button{
+  flex:none;width:92px;height:68px;border-radius:12px;overflow:hidden;padding:0;cursor:pointer;
+  border:2px solid rgba(168,132,28,.18);background:rgba(44,38,23,.1);transition:.25s;
+}
+.album-thumbs button img{width:100%;height:100%;object-fit:cover;display:block}
+.album-thumbs button:hover{border-color:rgba(168,132,28,.5)}
+.album-thumbs button.on{border-color:var(--gold);box-shadow:0 6px 16px rgba(201,162,39,.4);transform:translateY(-2px)}
+.album-thumbs[hidden]{display:none}
+body.album-locked{overflow:hidden}
+@media (prefers-reduced-motion:reduce){
+  .album-modal.open,.album-panel{animation:none}
+  .album-x:hover{transform:none}
+}
+@media(max-width:600px){
+  .album-modal{padding:8px}
+  .album-panel{padding:18px 14px 16px;border-radius:20px;max-height:94vh}
+  .album-head{padding-inline-start:46px;margin-bottom:14px}
+  .album-head p{font-size:.92rem}
+  .album-stage{aspect-ratio:4/3}
+  .album-nav{width:38px;height:38px;font-size:1.2rem}
+  .album-prev{right:8px}.album-next{left:8px}
+  .album-thumbs button{width:66px;height:50px}
+}
 
 /* ===== Doctors ===== */
 .doc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
@@ -538,7 +634,8 @@ footer::before{content:'';position:absolute;inset:0;background:radial-gradient(6
 .fab-item-ig{background:radial-gradient(circle at 30% 115%,#FDF497 0%,#FD5949 45%,#D6249F 60%,#285AEB 90%)}
 .fab-item-tt{background:#010101}
 .lightbox{
-  position:fixed;inset:0;z-index:80;background:rgba(38,33,21,.78);
+  /* فوق نافذة ألبوم النشاط (z-index:95) لأن التكبير يُفتح من داخلها */
+  position:fixed;inset:0;z-index:120;background:rgba(38,33,21,.78);
   backdrop-filter:blur(14px) saturate(130%);-webkit-backdrop-filter:blur(14px) saturate(130%);
   display:none;align-items:center;justify-content:center;padding:4vh 4vw;
 }
@@ -994,7 +1091,7 @@ section + section::after{
     <div class="sec-head reveal">
       <span class="kicker" id="galKicker">نشاط العيادة</span>
       <h2 id="galTitle">جولة سريعة <span class="grad-text">داخل أوراس</span></h2>
-      <p id="galLead">بيئة نظيفة وهادئة صُممت لراحتك — اضغط على أي صورة لتكبيرها.</p>
+      <p id="galLead">بيئة نظيفة وهادئة صُممت لراحتك — اضغط على أي نشاط لفتح ألبوم صوره وقراءة نبذة عنه.</p>
     </div>
     <div class="gal-grid" id="galGrid">
       <figure class="gal-item reveal"><img data-img="g1" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FBF6E7'/><stop offset='1' stop-color='%23F3E5BF'/></linearGradient></defs><rect width='800' height='600' fill='url%28%23g%29'/><g transform='translate%28272 110%29 scale%284%29'><path d='M32 12c-5 0-6.5 3-10.5 3-5.5 0-8 4-8 9.5 0 10 4.8 15 6.8 25 .9 4.8 7 4.7 7.9-.2.7-3.4 1.6-7 3.8-7s3.1 3.6 3.8 7c.9 4.9 7 5 7.9.2 2-10 6.8-15 6.8-25 0-5.5-2.5-9.5-8-9.5-4 0-5.5-3-10.5-3z' fill='none' stroke='%23C9A227' stroke-opacity='.5' stroke-width='1.3'/></g><text x='400' y='450' text-anchor='middle' font-size='30' font-family='sans-serif' fill='%23A8841C'>%D8%A7%D9%84%D8%B5%D9%88%D8%B1%D8%A9 %D8%AA%D9%8F%D8%B6%D8%A7%D9%81 %D9%85%D9%86 %D9%84%D9%88%D8%AD%D8%A9 %D8%A7%D9%84%D8%AA%D8%AD%D9%83%D9%85</text></svg>" alt="صالة الانتظار"><figcaption>صالة الانتظار</figcaption></figure>
@@ -1316,6 +1413,31 @@ section + section::after{
   <img src="" alt="عرض مكبر" id="lbImg">
 </div>
 
+<!-- ألبوم نشاط العيادة — يفتح فوق الموقع مع ضباب في الخلف -->
+<div class="album-modal" id="albumModal" role="dialog" aria-modal="true" aria-labelledby="albumTitle" aria-hidden="true">
+  <div class="album-panel">
+    <button class="album-x" id="albumClose" type="button" aria-label="إغلاق الألبوم">✕</button>
+    <header class="album-head">
+      <span class="kicker" id="albumKicker">نشاط العيادة</span>
+      <h3 id="albumTitle">نشاط العيادة</h3>
+      <p id="albumDesc"></p>
+    </header>
+    <div class="album-stage">
+      <span class="album-badge" id="albumCounter">1 / 1</span>
+      <button class="album-nav album-prev" id="albumPrev" type="button" aria-label="الصورة السابقة">›</button>
+      <img id="albumImg" src="" alt="صورة من نشاط العيادة">
+      <button class="album-nav album-next" id="albumNext" type="button" aria-label="الصورة التالية">‹</button>
+      <button class="album-zoom" id="albumZoom" type="button" aria-label="تكبير الصورة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6M11 8.5v5M8.5 11h5"/></svg>
+      </button>
+    </div>
+    <div class="album-foot">
+      <p class="album-caption" id="albumCaption"></p>
+    </div>
+    <div class="album-thumbs" id="albumThumbs" aria-label="صور النشاط"></div>
+  </div>
+</div>
+
 <!-- نافذة إضافة تقييم -->
 <div class="rev-modal" id="revModal" role="dialog" aria-modal="true" aria-labelledby="revModalTitle">
   <div class="rev-box">
@@ -1417,24 +1539,159 @@ function bindBA() {
 }
 bindBA();
 
-/* معرض الصور — لايت بوكس بتفويض الأحداث (يعمل مع المحتوى الديناميكي) */
+/* ═══════════ نشاط العيادة — ألبوم الصور + لايت بوكس ═══════════ */
 const lightbox = $('#lightbox'), lbImg = $('#lbImg');
-let lbIndex = 0;
+let lbIndex = 0, lbList = [];
 const galImgs = () => $$('.gal-item img');
-const showLb = (i) => { const items = galImgs(); if (!items.length) return; lbIndex = (i + items.length) % items.length; lbImg.src = items[lbIndex].src; lightbox.classList.add('open'); };
-document.addEventListener('click', (e) => {
-  const item = e.target.closest('.gal-item');
-  if (item) showLb(galImgs().indexOf(item.querySelector('img')));
-});
+const galSrcs = () => galImgs().map((im) => im.currentSrc || im.src).filter(Boolean);
+const showLb = (i) => {
+  if (!lbList.length) lbList = galSrcs();      /* إن لم تُمرَّر قائمة: صور القسم نفسها */
+  if (!lbList.length) return;
+  lbIndex = ((i % lbList.length) + lbList.length) % lbList.length;
+  lbImg.src = lbList[lbIndex];
+  lightbox.classList.add('open');
+};
 $('#lbClose').addEventListener('click', () => lightbox.classList.remove('open'));
 $('#lbPrev').addEventListener('click', () => showLb(lbIndex + 1));
 $('#lbNext').addEventListener('click', () => showLb(lbIndex - 1));
 lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('open'); });
+
+/* ── نافذة ألبوم النشاط: تظهر فوق الموقع مع ضباب في الخلف ── */
+const albumModal = $('#albumModal');
+const albumImg = $('#albumImg');
+const albumTitleEl = $('#albumTitle');
+const albumDescEl = $('#albumDesc');
+const albumCaptionEl = $('#albumCaption');
+const albumCounterEl = $('#albumCounter');
+const albumThumbsEl = $('#albumThumbs');
+const albumPrevEl = $('#albumPrev');
+const albumNextEl = $('#albumNext');
+const albumZoomEl = $('#albumZoom');
+const ALBUM_HINT = 'أضف صور هذا النشاط ونصه التعريفي من لوحة التحكم ← قسم «نشاط العيادة».';
+let albumPhotos = [];
+let albumIndex = 0;
+let albumFocusBack = null;
+let cmsAlbums = [];
+
+/* تمرر oras-sanity.js إليها ألبومات لوحة التحكم (اسم النشاط + النص التعريفي + الصور) */
+window.orasGalleryAlbums = function (list) { cmsAlbums = Array.isArray(list) ? list : []; };
+
+function albumFromFigure(fig) {
+  const i = parseInt(fig.getAttribute('data-album'), 10);
+  if (!isNaN(i) && cmsAlbums[i]) return cmsAlbums[i];
+  /* المحتوى الافتراضي قبل ربط لوحة التحكم */
+  const photos = $$('img', fig)
+    .map((im) => ({ src: im.currentSrc || im.src, alt: im.alt || '', caption: '' }))
+    .filter((p) => p.src);
+  const cap = fig.querySelector('figcaption');
+  return {
+    title: (fig.getAttribute('data-album-title') || (cap ? cap.textContent : '') || 'نشاط العيادة').trim(),
+    description: fig.getAttribute('data-album-desc') || ALBUM_HINT,
+    photos: photos,
+  };
+}
+
+function renderAlbumPhoto() {
+  const p = albumPhotos[albumIndex] || {};
+  const single = albumPhotos.length < 2;
+  albumImg.classList.add('is-loading');
+  albumImg.setAttribute('src', p.src || '');
+  albumImg.setAttribute('alt', p.alt || albumTitleEl.textContent || 'صورة من نشاط العيادة');
+  albumCaptionEl.textContent = p.caption || '';
+  albumCaptionEl.hidden = !p.caption;
+  albumCounterEl.textContent = (albumIndex + 1) + ' / ' + albumPhotos.length;
+  albumCounterEl.hidden = single;
+  albumPrevEl.hidden = single;
+  albumNextEl.hidden = single;
+  albumZoomEl.hidden = !p.src;
+  $$('button', albumThumbsEl).forEach((b, i) => b.classList.toggle('on', i === albumIndex));
+  const active = albumThumbsEl.querySelector('button.on');
+  if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest', inline: 'center' });
+}
+albumImg.addEventListener('load', () => albumImg.classList.remove('is-loading'));
+albumImg.addEventListener('error', () => albumImg.classList.remove('is-loading'));
+
+function showAlbumPhoto(i) {
+  if (!albumPhotos.length) return;
+  albumIndex = ((i % albumPhotos.length) + albumPhotos.length) % albumPhotos.length;
+  renderAlbumPhoto();
+}
+
+function buildAlbumThumbs() {
+  albumThumbsEl.innerHTML = '';
+  if (albumPhotos.length < 2) { albumThumbsEl.hidden = true; return; }   /* صورة واحدة: لا حاجة للمصغّرات */
+  albumPhotos.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', 'الصورة ' + (i + 1) + ' من ' + albumPhotos.length);
+    const im = document.createElement('img');
+    im.setAttribute('loading', 'lazy');
+    im.setAttribute('src', p.thumb || p.src);
+    im.setAttribute('alt', '');
+    b.appendChild(im);
+    albumThumbsEl.appendChild(b);
+    b.addEventListener('click', () => showAlbumPhoto(i));
+  });
+  albumThumbsEl.hidden = albumPhotos.length < 2;
+}
+
+function openAlbum(fig) {
+  const data = albumFromFigure(fig) || {};
+  albumPhotos = (data.photos || []).filter((p) => p && p.src);
+  if (!albumPhotos.length) return;
+  albumIndex = 0;
+  albumTitleEl.textContent = data.title || 'نشاط العيادة';
+  albumDescEl.textContent = data.description || '';
+  albumDescEl.hidden = !data.description;
+  buildAlbumThumbs();
+  renderAlbumPhoto();
+  albumFocusBack = document.activeElement;
+  albumModal.classList.add('open');
+  albumModal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('album-locked');
+  $('#albumClose').focus();
+}
+
+function closeAlbum() {
+  albumModal.classList.remove('open');
+  albumModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('album-locked');
+  if (albumFocusBack && albumFocusBack.focus) albumFocusBack.focus();
+  albumFocusBack = null;
+}
+
+/* الضغط على أي نشاط يفتح ألبومه — بتفويض الأحداث ليعمل مع محتوى لوحة التحكم */
+document.addEventListener('click', (e) => {
+  const item = e.target.closest('.gal-item');
+  if (!item) return;
+  e.preventDefault();
+  openAlbum(item);
+});
+
+albumPrevEl.addEventListener('click', () => showAlbumPhoto(albumIndex - 1));
+albumNextEl.addEventListener('click', () => showAlbumPhoto(albumIndex + 1));
+$('#albumClose').addEventListener('click', closeAlbum);
+albumModal.addEventListener('click', (e) => { if (e.target === albumModal) closeAlbum(); });
+const zoomAlbumPhoto = () => { lbList = albumPhotos.map((p) => p.src); showLb(albumIndex); };
+$('#albumZoom').addEventListener('click', zoomAlbumPhoto);
+albumImg.addEventListener('click', zoomAlbumPhoto);
+
 document.addEventListener('keydown', (e) => {
-  if (!lightbox.classList.contains('open')) return;
-  if (e.key === 'Escape') lightbox.classList.remove('open');
-  if (e.key === 'ArrowLeft') showLb(lbIndex - 1);
-  if (e.key === 'ArrowRight') showLb(lbIndex + 1);
+  if (e.key === 'Escape') {
+    if (lightbox.classList.contains('open')) lightbox.classList.remove('open');
+    else if (albumModal.classList.contains('open')) closeAlbum();
+    return;
+  }
+  if (lightbox.classList.contains('open')) {
+    if (e.key === 'ArrowLeft') showLb(lbIndex - 1);
+    if (e.key === 'ArrowRight') showLb(lbIndex + 1);
+    return;
+  }
+  if (albumModal.classList.contains('open')) {
+    /* اتجاه عربي: السهم يمين = السابق، السهم يسار = التالي */
+    if (e.key === 'ArrowRight') { e.preventDefault(); showAlbumPhoto(albumIndex - 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); showAlbumPhoto(albumIndex + 1); }
+  }
 });
 
 /* نموذج الحجز — منطق الحجز الآلي بالساعة وزر واتساب منفصلان في oras-booking.js */
@@ -1850,7 +2107,7 @@ window.orasHeroSlider = (function () {
 <script>
   window.ORAS_SANITY_CONFIG = { projectId: 'upxb9w10', dataset: 'production' };
 </script>
-<script src="oras-sanity.js?v=10" defer></script>
+<script src="oras-sanity.js?v=11" defer></script>
 <script src="oras-booking.js?v=3" defer></script>
 </body>
 </html>
