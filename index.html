@@ -273,60 +273,63 @@ h1{font-size:clamp(2.2rem,5vw,3.7rem);font-weight:900;line-height:1.3;margin-bot
 h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:900;line-height:1.4;margin-bottom:14px}
 .sec-head p{color:var(--ink-soft);font-size:1.05rem}
 
-/* ===== About ===== */
-.about-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:64px;align-items:center}
-.about-visual{position:relative}
-.about-visual::before{content:'';position:absolute;inset:-22px -22px 22px 22px;border-radius:var(--r);background:var(--grad-soft);border:1px solid var(--line);z-index:1}
-/* شرائح «من نحن» — تتحرك عكس اتجاه صور صفحة الهبوط */
-.about-slider{position:relative;z-index:2;height:480px;border-radius:var(--r);overflow:hidden;border:8px solid rgba(255,255,255,.5);box-shadow:0 0 0 1px rgba(255,255,255,.55),var(--shadow)}
-.about-slide{position:absolute;inset:0;margin:0;opacity:0;transition:opacity 1.2s ease}
-.about-slide.is-active{opacity:1}
-.about-slide img{width:100%;height:100%;object-fit:cover;transform:scale(1.03)}
-/* عكس اتجاه heroKb: إلى اليمين (+1.5%) بدل اليسار */
-.about-slide.is-active img{animation:aboutKb 9s ease-out forwards}
+/* ===== About — صور خلفية كاملة مثل صفحة الهبوط ===== */
+#about{padding:0;min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden;position:relative}
+/* طبقة شرائح الخلفية */
+.about-bg{position:absolute;inset:0;z-index:0;background:#191509}
+.about-bg-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.5s ease}
+.about-bg-slide.is-active{opacity:1}
+.about-bg-slide img{width:100%;height:100%;object-fit:cover;transform:scale(1.03)}
+/* حركة Ken Burns — عكس اتجاه صفحة الهبوط (إلى اليمين) */
+.about-bg-slide.is-active img{animation:aboutKb 9s ease-out forwards}
 @keyframes aboutKb{from{transform:scale(1.03) translateX(0)}to{transform:scale(1.16) translateX(1.5%)}}
-.about-cap{position:absolute;inset-inline:0;bottom:0;padding:48px 20px 30px;background:linear-gradient(to top,rgba(24,20,12,.86),rgba(24,20,12,0));color:#fff;text-align:right}
-.about-cap b{display:block;font-size:1.06rem;font-weight:900;text-shadow:0 1px 10px rgba(0,0,0,.5)}
-.about-cap p{font-size:.87rem;line-height:1.7;color:rgba(255,255,255,.92);margin-top:4px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
-.about-cap[hidden]{display:none}
-.ab-arrow{
-  position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:42px;height:42px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.55);background:rgba(255,253,246,.72);color:var(--gold-ink);
-  display:grid;place-items:center;cursor:pointer;
-  backdrop-filter:blur(10px) saturate(150%);-webkit-backdrop-filter:blur(10px) saturate(150%);
-  box-shadow:var(--glass-shadow-sm);transition:.25s;
+/* طبقة تعتيم فوق الصور لضمان قراءة المحتوى */
+.about-scrim{position:absolute;inset:0;z-index:1;
+  background:
+    linear-gradient(to top,rgba(22,18,10,.85) 0%,rgba(22,18,10,.48) 40%,rgba(22,18,10,.58) 100%),
+    linear-gradient(to left,rgba(22,18,10,.4) 0%,transparent 55%)}
+/* المحتوى فوق الخلفية */
+.about-content{position:relative;z-index:2;width:min(1160px,92%);margin-inline:auto;padding:190px 0 130px}
+/* تعديل عناصر المحتوى لتظهر فاتحة على خلفية داكنة */
+.about-content .kicker{
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;
+  backdrop-filter:blur(12px) saturate(150%);-webkit-backdrop-filter:blur(12px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
 }
-.ab-arrow:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent}
-.ab-prev{right:12px}
-.ab-next{left:12px}
-.ab-dots{position:absolute;bottom:10px;left:0;right:0;z-index:3;display:flex;justify-content:center;gap:7px}
-.ab-dot{width:8px;height:8px;border-radius:999px;border:0;padding:0;background:rgba(255,255,255,.55);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:width .3s,background .3s}
-.ab-dot.is-active{width:22px;background:var(--gold)}
-.about-slider.single .ab-arrow,.about-slider.single .ab-dots{display:none}
-@media (prefers-reduced-motion:reduce){.about-slide{transition:none}.about-slide.is-active img{animation:none}}
+.about-content h2{color:#fff;text-shadow:0 3px 26px rgba(0,0,0,.45);font-size:clamp(2rem,4vw,2.8rem)}
+.about-content p{color:rgba(255,255,255,.92);text-shadow:0 1px 12px rgba(0,0,0,.4)}
+.about-content p b{color:#fff}
+/* شارة سنوات الخبرة */
 .exp-badge{
-  position:absolute;z-index:3;bottom:26px;left:-26px;background:var(--grad-gold);color:#4A3A0A;
+  position:absolute;z-index:3;bottom:60px;left:4%;
+  background:var(--grad-gold);color:#4A3A0A;
   border:1px solid rgba(255,255,255,.55);
   border-radius:20px;padding:18px 26px;text-align:center;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 16px 34px rgba(201,162,39,.45);font-weight:900;
 }
 .exp-badge b{display:block;font-size:2rem;line-height:1.1}
 .exp-badge span{font-size:.85rem;font-weight:800}
-.feat-list{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:26px 0 30px}
-.feat-list li{display:flex;gap:.7rem;align-items:flex-start;font-weight:700;font-size:.95rem}
-.feat-list .chk{flex:none;width:26px;height:26px;border-radius:9px;background:var(--gold-pale);border:1px solid var(--line);display:grid;place-items:center;margin-top:3px}
-.stats-band{
+/* قائمة المميزات — ألوان فاتحة */
+.about-content .feat-list{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:26px 0 30px}
+.about-content .feat-list li{display:flex;gap:.7rem;align-items:flex-start;font-weight:700;font-size:.95rem;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.about-content .feat-list .chk{flex:none;width:26px;height:26px;border-radius:9px;background:rgba(201,162,39,.25);border:1px solid rgba(255,255,255,.25);display:grid;place-items:center;margin-top:3px}
+.about-content .feat-list .chk svg{stroke:#F3D477}
+/* شريط الإحصائيات — زجاج شفاف */
+.about-content .stats-band{
   display:grid;grid-template-columns:repeat(4,1fr);gap:18px;
-  background-color:rgba(255,253,246,.55);background-image:var(--glass-bg);
-  border:1px solid var(--glass-border);border-radius:var(--r);
-  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
-  box-shadow:var(--glass-inset),var(--glass-shadow-sm);
-  padding:30px 22px;position:relative;z-index:2;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:var(--r);
+  backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 16px 40px rgba(0,0,0,.25);
+  padding:30px 22px;
 }
-.stat{text-align:center}
-.stat b{font-size:2rem;font-weight:900;display:block;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;color:transparent}
-.stat span{color:var(--ink-soft);font-weight:700;font-size:.92rem}
-.about-text p{color:var(--ink-soft)}
+.about-content .stat b{font-size:2rem;font-weight:900;display:block;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;color:transparent}
+.about-content .stat span{color:rgba(255,255,255,.82);font-weight:700;font-size:.92rem}
+/* نقاط الشرائح */
+.about-dots-wrap{position:absolute;bottom:26px;left:0;right:0;z-index:3;display:flex;justify-content:center;gap:8px}
+.about-dot{width:9px;height:9px;border-radius:999px;border:0;padding:0;background:rgba(255,255,255,.4);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:width .3s ease,background .3s ease}
+.about-dot.is-active{width:26px;background:var(--gold)}
+.about-bg.single ~ .about-dots-wrap{display:none}
+@media (prefers-reduced-motion:reduce){.about-bg-slide{transition:none}.about-bg-slide.is-active img{animation:none}}
 
 /* ===== Services ===== */
 .services{background:linear-gradient(180deg,#FFFDF6 0%,#FAF1DA 100%)}
@@ -825,7 +828,7 @@ section + section::after{
   .hs-arrow{width:44px;height:44px}
   .hero-in{padding:170px 0 110px}
   .fc-1{right:-10px}.fc-2{left:-10px}
-  .about-grid{grid-template-columns:1fr;gap:44px}
+  .about-content{padding:170px 0 110px}
   .srv-grid{grid-template-columns:repeat(2,1fr)}
   .case-grid{grid-template-columns:1fr;max-width:520px;margin-inline:auto}
   .gal-grid{grid-template-columns:repeat(2,1fr)}
@@ -849,7 +852,7 @@ section + section::after{
 }
 @media(max-width:600px){
   section{padding:72px 0}
-  .gal-grid,.f-row,.feat-list,.stats-band{grid-template-columns:1fr}
+  .gal-grid,.f-row{grid-template-columns:1fr}
   /* بطاقات العلاجات بالجوال: اثنتان في الصف بحجم مصغّر */
   .srv-grid{grid-template-columns:1fr 1fr;gap:12px}
   .srv{padding:18px 14px 20px}
@@ -867,14 +870,15 @@ section + section::after{
   .sv-opts{flex-wrap:wrap}
   .sv-opts label{flex:1 1 40%}
   .sv-opts .sv-btn{font-size:.92rem}
-  .stats-band{grid-template-columns:1fr 1fr}
+  .about-content .stats-band{grid-template-columns:1fr 1fr}
+  .about-content .feat-list{grid-template-columns:1fr}
   .tb-email,.tb-hours,.tb-addr{display:none}
   .tb-in{justify-content:center}
   .hero-in{padding:150px 0 100px}
   .hs-arrow{width:38px;height:38px}
   .hs-prev{right:8px}.hs-next{left:8px}
   .fc-1,.fc-2{display:none}
-  .exp-badge{left:8px;bottom:14px;padding:12px 18px}
+  .exp-badge{left:4%;bottom:50px;padding:12px 18px}
   .foot-grid{grid-template-columns:1fr}
   .book-form{padding:28px 22px}
   .float-card{font-size:.85rem}
@@ -889,24 +893,6 @@ section + section::after{
   <div class="topbar">
     <div class="container tb-in">
       <div class="tb-group">
-        <a class="tb-chip" href="tel:+249912345678" data-tel id="tbPhoneLink" aria-label="اتصل بنا">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2z"/></svg>
-          <span id="tbPhone">+249 91 234 5678</span>
-        </a>
-        <a class="tb-chip tb-email" href="mailto:info@orasdentalclinic.com" id="tbEmailLink" aria-label="راسلنا">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m22 7-10 6L2 7"/></svg>
-          <span id="tbEmail">info@orasdentalclinic.com</span>
-        </a>
-        <span class="tb-chip tb-hours">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          <span id="tbHoursTxt">السبت — الخميس: 9 ص — 9 م</span>
-        </span>
-      </div>
-      <div class="tb-group">
-        <span class="tb-chip tb-addr">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span id="tbAddr">شارع الستين، الخرطوم</span>
-        </span>
         <div class="tb-socials" aria-label="مواقع التواصل">
           <a href="#" aria-label="فيسبوك"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.7c0-.9.3-1.6 1.6-1.6h1.7V4.2c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.4V14h2.7v8z"/></svg></a>
           <a href="#" aria-label="انستغرام"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor" stroke="none"/></svg></a>
@@ -972,46 +958,29 @@ section + section::after{
   <div class="hs-dots"></div>
 </section>
 
-<!-- ===================== ABOUT ===================== -->
+<!-- ===================== ABOUT — صور خلفية كاملة مثل صفحة الهبوط ===================== -->
 <section id="about">
-  <div class="sec-bg" data-bg="about" style="background-image:url('images/bg/about.jpg')"></div>
-  <div class="container">
-    <div class="about-grid">
-      <div class="about-visual reveal">
-      <div class="about-slider" id="aboutSlider" role="region" aria-roledescription="عرض شرائح" aria-label="جولة مصورة في عيادة أوراس">
-        <figure class="about-slide is-active">
-          <img src="images/bg/about.jpg" alt="غرفة علاج مجهزة في عيادة أوراس" draggable="false">
-          <figcaption class="about-cap"><b>غرف علاج هادئة</b><p>كراسي علاج رقمية حديثة مع عزل كامل يضمن لك الخصوصية والراحة.</p></figcaption>
-        </figure>
-        <figure class="about-slide">
-          <img src="images/bg/gallery.jpg" alt="ممر غرف العلاج في عيادة أوراس" loading="lazy" draggable="false">
-          <figcaption class="about-cap"><b>بيئة معقّمة يومياً</b><p>بروتوكول تعقيم صارم بعد كل مريض وبأجهزة معتمدة عالمياً.</p></figcaption>
-        </figure>
-        <figure class="about-slide">
-          <img src="images/bg/doctors.jpg" alt="الفريق الطبي في عيادة أوراس" loading="lazy" draggable="false">
-          <figcaption class="about-cap"><b>فريق استشاري متكامل</b><p>أطباء في كل تخصصات طب الأسنان تحت سقف واحد وخطة علاج واضحة.</p></figcaption>
-        </figure>
-        <button type="button" class="ab-arrow ab-prev" aria-label="الصورة السابقة"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
-        <button type="button" class="ab-arrow ab-next" aria-label="الصورة التالية"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
-        <div class="ab-dots"></div>
-      </div>
-      <div class="exp-badge" id="expBadge" hidden><b id="aboutYears"></b><span id="aboutYearsLabel"></span></div>
-      </div>
-      <div class="about-text reveal">
-        <span class="kicker">من نحن</span>
-        <h2 id="aboutTitle">عيادة تشعر فيها بالراحة… قبل أن تجلس على الكرسي</h2>
-        <p style="margin-bottom:14px" id="aboutP1">في <b>عيادة أوراس لطب الأسنان</b> نؤمن أن زيارة طبيب الأسنان يجب أن تكون تجربة مطمئنة، لا مصدر قلق. لذلك صمّمنا كل تفصيلة في العيادة — من الاستقبال إلى غرف العلاج — لتمنحك الهدوء والخصوصية الكاملة.</p>
-        <p id="aboutP2">نعتمد على أحدث الأجهزة الرقمية، وأنظمة تعقيم صارمة، وفريق استشاري متكامل يغطي كل تخصصات طب الأسنان تحت سقف واحد.</p>
-        <ul class="feat-list">
-          <li><span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> أجهزة رقمية حديثة وأشعة </li>
-          <li><span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> تعقيم كامل بعد كل مريض</li>
-          <li><span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> معاملة راقية تليق بالمراجع</li>
-          <li><span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> خطة علاج واضحة وسعر شفاف</li>
-        </ul>
-        <div class="stats-band" id="statsBand" hidden></div>
-      </div>
-    </div>
+  <div class="about-bg" id="aboutBg" aria-hidden="true">
+    <div class="about-bg-slide is-active"><img src="images/bg/about.jpg" alt="" draggable="false"></div>
+    <div class="about-bg-slide"><img src="images/bg/gallery.jpg" alt="" loading="lazy" draggable="false"></div>
+    <div class="about-bg-slide"><img src="images/bg/doctors.jpg" alt="" loading="lazy" draggable="false"></div>
   </div>
+  <div class="about-scrim"></div>
+  <div class="about-content reveal">
+    <span class="kicker">من نحن</span>
+    <h2 id="aboutTitle">عيادة تشعر فيها بالراحة… قبل أن تجلس على الكرسي</h2>
+    <p style="margin-bottom:14px" id="aboutP1">في <b>عيادة أوراس لطب الأسنان</b> نؤمن أن زيارة طبيب الأسنان يجب أن تكون تجربة مطمئنة، لا مصدر قلق. لذلك صمّمنا كل تفصيلة في العيادة — من الاستقبال إلى غرف العلاج — لتمنحك الهدوء والخصوصية الكاملة.</p>
+    <p id="aboutP2">نعتمد على أحدث الأجهزة الرقمية، وأنظمة تعقيم صارمة، وفريق استشاري متكامل يغطي كل تخصصات طب الأسنان تحت سقف واحد.</p>
+    <ul class="feat-list">
+      <li><span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> أجهزة رقمية حديثة وأشعة </li>
+      <li><span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> تعقيم كامل بعد كل مريض</li>
+      <li><span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> معاملة راقية تليق بالمراجع</li>
+      <li><span class="chk"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> خطة علاج واضحة وسعر شفاف</li>
+    </ul>
+    <div class="stats-band" id="statsBand" hidden></div>
+  </div>
+  <div class="exp-badge" id="expBadge" hidden><b id="aboutYears"></b><span id="aboutYearsLabel"></span></div>
+  <div class="about-dots-wrap" id="aboutDotsWrap"></div>
 </section>
 
 <!-- ===================== SERVICES ===================== -->
@@ -1995,13 +1964,11 @@ window.orasHeroSlider = (function () {
   adoptStatic();
   return { setSlides: setSlides, state: () => ({ pos: pos, count: count() }) };
 })();
-/* ═══════════ شرائح «من نحن»: تتحرك عكس اتجاه شرائح الواجهة، لكل صورة عنوان ووصف ═══════════ */
+/* ═══════════ شرائح «من نحن»: صور خلفية كاملة مثل صفحة الهبوط ═══════════ */
 window.orasAboutSlider = (function () {
-  const root = $('#aboutSlider');
+  const root = $('#aboutBg');
   if (!root) return null;
-  const dotsBox = $('.ab-dots', root);
-  const prevBtn = $('.ab-prev', root);
-  const nextBtn = $('.ab-next', root);
+  const dotsWrap = $('#aboutDotsWrap');
   const reduceMotion = window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)')
     : { matches: false };
@@ -2030,9 +1997,6 @@ window.orasAboutSlider = (function () {
     restartAuto();
   }
   const next = () => goTo(pos + 1);
-  const prev = () => goTo(pos - 1);
-  prevBtn.addEventListener('click', prev);
-  nextBtn.addEventListener('click', next);
 
   function startAuto() {
     if (autoTimer || !canSlide() || reduceMotion.matches || document.hidden) return;
@@ -2043,41 +2007,18 @@ window.orasAboutSlider = (function () {
   document.addEventListener('visibilitychange', () => (document.hidden ? stopAuto() : startAuto()));
 
   function buildDots() {
-    dotsBox.innerHTML = '';
+    if (!dotsWrap) return;
+    dotsWrap.innerHTML = '';
     dots = [];
     for (let i = 0; i < count(); i++) {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'ab-dot';
-      b.setAttribute('aria-label', 'الانتقال إلى الصورة ' + (i + 1));
+      b.className = 'about-dot';
+      b.setAttribute('aria-label', 'الصورة ' + (i + 1) + ' من ' + count());
       b.addEventListener('click', () => goTo(i));
-      dotsBox.appendChild(b);
+      dotsWrap.appendChild(b);
       dots.push(b);
     }
-  }
-
-  function makeSlide(item, eager) {
-    const fig = document.createElement('figure');
-    fig.className = 'about-slide';
-    const img = document.createElement('img');
-    img.src = item.src;
-    img.alt = item.alt || item.title || 'من عيادة أوراس';
-    img.loading = eager ? 'eager' : 'lazy';
-    img.decoding = 'async';
-    img.draggable = false;
-    fig.appendChild(img);
-    if (item.title || item.desc) {
-      const cap = document.createElement('figcaption');
-      cap.className = 'about-cap';
-      if (item.title) cap.appendChild(document.createElement('b')).textContent = item.title;
-      if (item.desc) {
-        const p = document.createElement('p');
-        p.textContent = item.desc;
-        cap.appendChild(p);
-      }
-      fig.appendChild(cap);
-    }
-    return fig;
   }
 
   function finalize() {
@@ -2090,23 +2031,32 @@ window.orasAboutSlider = (function () {
 
   /* تبنّي الشرائح الموجودة في HTML */
   function adoptStatic() {
-    slides = $$('.about-slide', root);
+    slides = $$('.about-bg-slide', root);
     slideKey = slides.map((s) => ((s.querySelector('img') || {}).src || '')).join('|');
     finalize();
   }
 
-  /* استبدال الشرائح ببيانات لوحة التحكم {src,alt,title,desc} */
+  /* استبدال الشرائح بصور لوحة التحكم {src,alt,title,desc} */
   function setSlides(items) {
     const clean = (Array.isArray(items) ? items : []).filter((x) => x && x.src);
     const key = clean.map((x) => x.src).join('|');
     if (!clean.length || key === slideKey) return;
     slideKey = key;
     stopAuto();
-    const arrows = $$('.ab-arrow, .ab-dots', root);
     root.innerHTML = '';
-    slides = clean.map((it, i) => makeSlide(it, i === 0));
+    slides = clean.map((it, i) => {
+      const div = document.createElement('div');
+      div.className = 'about-bg-slide';
+      const img = document.createElement('img');
+      img.src = it.src;
+      img.alt = it.alt || 'من عيادة أوراس';
+      img.loading = i === 0 ? 'eager' : 'lazy';
+      img.decoding = 'async';
+      img.draggable = false;
+      div.appendChild(img);
+      return div;
+    });
     slides.forEach((s) => root.appendChild(s));
-    arrows.forEach((a) => root.appendChild(a));
     finalize();
   }
 
