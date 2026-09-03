@@ -87,7 +87,7 @@
   --shadow-sm:0 8px 22px rgba(168,132,28,.10);
   --r:22px;
   /* ══ نظام الزجاج — مادة "الفروستد" الشفافة مثل نوافذ آيفون (iOS frosted) ══ */
-  --glass-blur:blur(24px) saturate(180%);
+  --glass-blur:blur(16px) saturate(150%);
   --glass-bg:linear-gradient(165deg,rgba(255,255,255,.78) 0%,rgba(255,255,255,.36) 100%);
   --glass-bg-strong:linear-gradient(165deg,rgba(255,255,255,.9) 0%,rgba(255,255,255,.52) 100%);
   --glass-border:rgba(255,255,255,.65);
@@ -118,7 +118,8 @@ body::after{
     radial-gradient(46% 40% at 84% 10%, rgba(247,232,169,.5), transparent 68%),
     radial-gradient(40% 36% at 8% 68%, rgba(201,162,39,.22), transparent 70%),
     radial-gradient(34% 30% at 66% 90%, rgba(163,190,169,.22), transparent 70%);
-  filter:blur(70px); opacity:.6;
+  opacity:.6;
+  will-change:transform;
   animation:auroraDrift 32s ease-in-out infinite alternate;
 }
 @keyframes auroraDrift{
@@ -136,7 +137,7 @@ section{scroll-margin-top:92px; padding:96px 0; position:relative}
 .grad-text{background:var(--grad-gold); -webkit-background-clip:text; background-clip:text; color:transparent}
 
 /* ===== الهيدر: شريط علوي زجاجي + بطاقة تنقّل عائمة (على طريقة الزجاج العائم) ===== */
-#siteHeader{position:fixed;inset-inline:0;top:0;z-index:50;pointer-events:none}
+#siteHeader{position:fixed;inset-inline:0;top:0;z-index:50;pointer-events:none;transform:translateZ(0)}
 #siteHeader .topbar,#siteHeader .nav-card{pointer-events:auto}
 .topbar{padding:10px 0 0;max-height:80px;overflow:hidden;transition:max-height .35s ease,opacity .3s ease,transform .3s ease}
 .tb-in{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -191,16 +192,14 @@ a.tb-chip:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transpare
 .btn-sm{padding:.62rem 1.5rem;font-size:.92rem}
 .btn[disabled]{opacity:.65;cursor:default;transform:none!important;box-shadow:none}
 
-/* ===== الواجهة: شرائح كاملة متحركة خلف المحتوى ===== */
+/* ===== الواجهة: شرائح كاملة تتبدل بتأثير التلاشي (Fade) خلف المحتوى ===== */
 .hero{padding:0;min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden;scroll-margin-top:0}
 /* طبقة الشرائح */
 .hero-bg{position:absolute;inset:0;z-index:0;background:#191509}
-.hero-bg-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.5s ease}
+/* الانتقال بين الصور بتأثير التلاشي (Fade) */
+.hero-bg-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease-in-out;will-change:opacity}
 .hero-bg-slide.is-active{opacity:1}
 .hero-bg-slide img{width:100%;height:100%;object-fit:cover;transform:scale(1.03)}
-/* حركة بطيئة (Ken Burns) للشريحة النشطة */
-.hero-bg-slide.is-active img{animation:heroKb 9s ease-out forwards}
-@keyframes heroKb{from{transform:scale(1.03) translateX(0)}to{transform:scale(1.16) translateX(-1.5%)}}
 /* طبقة تعتيم مقروءة فوق الصور */
 .hero-scrim{position:absolute;inset:0;z-index:1;background:
   linear-gradient(to top,rgba(22,18,10,.82) 0%,rgba(22,18,10,.3) 45%,rgba(22,18,10,.44) 100%),
@@ -244,7 +243,6 @@ h1{font-size:clamp(2.2rem,5vw,3.7rem);font-weight:900;line-height:1.3;margin-bot
 .hero.single .hs-arrow,.hero.single .hs-dots{display:none}
 @media (prefers-reduced-motion:reduce){
   .hero-bg-slide{transition:none}
-  .hero-bg-slide.is-active img{animation:none}
 }
 [hidden]{display:none!important}
 .float-card{
@@ -277,12 +275,10 @@ h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:900;line-height:1.4;margin-b
 #about{padding:0;min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden;position:relative}
 /* طبقة شرائح الخلفية */
 .about-bg{position:absolute;inset:0;z-index:0;background:#191509}
-.about-bg-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.5s ease}
+/* الانتقال بين الصور بتأثير التلاشي (Fade) */
+.about-bg-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease-in-out;will-change:opacity}
 .about-bg-slide.is-active{opacity:1}
 .about-bg-slide img{width:100%;height:100%;object-fit:cover;transform:scale(1.03)}
-/* حركة Ken Burns — عكس اتجاه صفحة الهبوط (إلى اليمين) */
-.about-bg-slide.is-active img{animation:aboutKb 9s ease-out forwards}
-@keyframes aboutKb{from{transform:scale(1.03) translateX(0)}to{transform:scale(1.16) translateX(1.5%)}}
 /* طبقة تعتيم فوق الصور لضمان قراءة المحتوى */
 .about-scrim{position:absolute;inset:0;z-index:1;
   background:
@@ -329,7 +325,7 @@ h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:900;line-height:1.4;margin-b
 .about-dot{width:9px;height:9px;border-radius:999px;border:0;padding:0;background:rgba(255,255,255,.4);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:width .3s ease,background .3s ease}
 .about-dot.is-active{width:26px;background:var(--gold)}
 .about-bg.single ~ .about-dots-wrap{display:none}
-@media (prefers-reduced-motion:reduce){.about-bg-slide{transition:none}.about-bg-slide.is-active img{animation:none}}
+@media (prefers-reduced-motion:reduce){.about-bg-slide{transition:none}}
 
 /* ===== Services ===== */
 .services{background:linear-gradient(180deg,#FFFDF6 0%,#FAF1DA 100%)}
@@ -537,7 +533,7 @@ body.album-locked{overflow:hidden}
 .book-form{
   background-color:rgba(255,253,246,.6);background-image:var(--glass-bg-strong);
   border:1px solid var(--glass-border);border-radius:var(--r);
-  backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);
+  backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);
   box-shadow:var(--glass-inset),0 24px 60px rgba(168,132,28,.2);
   padding:38px 36px;
 }
@@ -783,7 +779,7 @@ section{overflow:hidden}
 .sec-bg{
   position:absolute;inset:0;z-index:0;pointer-events:none;
   background-size:cover;background-position:center;background-repeat:no-repeat;
-  filter:blur(2px);transform:scale(1.05);
+  transform:scale(1.05);
 }
 .sec-bg::after{
   content:'';position:absolute;inset:0;
@@ -819,6 +815,7 @@ section + section::after{
   body::after{animation:none}
   .fc-1,.fc-2{animation:none}
   html{scroll-behavior:auto}
+  .hero-bg-slide,.about-bg-slide{transition:none}
 }
 
 /* ===== Responsive ===== */
@@ -928,7 +925,7 @@ section + section::after{
 </header>
 
 <main>
-<!-- ===================== HERO: شرائح تتحرك في الخلفية ===================== -->
+<!-- ===================== HERO: شرائح تتبدل بتأثير التلاشي في الخلفية ===================== -->
 <section class="hero" id="home">
   <div class="hero-bg" id="heroBg" aria-hidden="true">
     <div class="hero-bg-slide is-active"><img src="images/bg/hero.jpg" alt="" draggable="false"></div>
@@ -1856,7 +1853,7 @@ $('#revSubmit').addEventListener('click', () => {
 });
 
 
-/* ═══════════ شرائح الواجهة: خلفية كاملة تتحرك خلف المحتوى (تلاشٍ + Ken Burns) ═══════════ */
+/* ═══════════ شرائح الواجهة: خلفية كاملة تتبدل بتأثير التلاشي (Fade) خلف المحتوى ═══════════ */
 window.orasHeroSlider = (function () {
   const section = $('.hero');
   const root = $('#heroBg');
