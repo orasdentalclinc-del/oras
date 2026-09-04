@@ -243,7 +243,7 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
     return {
       name: nameInput ? nameInput.value.trim() : '',
       phone: phoneInput ? phoneInput.value.trim() : '',
-      service: serviceInput ? serviceInput.value : 'فحص وتشخيص عام',
+      service: serviceInput ? serviceInput.value : 'فحص وتشخيص',
       date: dateInput ? dateInput.value : '',
       hour: hourRadio ? hourRadio.value : '',
       notes: notesInput ? notesInput.value.trim() : '',
@@ -344,7 +344,7 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
       '────────────────\n' +
       '👤 الاسم: ' + (payload.name || '') + '\n' +
       '📞 الهاتف: ' + (payload.phone || '') + '\n' +
-      '🩺 الخدمة: ' + (payload.service || 'فحص وتشخيص عام') + '\n' +
+      '🩺 الخدمة: ' + (payload.service || 'فحص وتشخيص') + '\n' +
       '📅 التاريخ: ' + (payload.date || 'أي يوم مناسب') + '\n' +
       '🕐 الساعة: ' + (payload.hour ? hourLabel(payload.hour) + ' (' + hourRange(payload.hour) + ')' : 'أي ساعة تناسبكم') + '\n' +
       '📝 ملاحظات: ' + (payload.notes || '—') + '\n' +

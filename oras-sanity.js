@@ -787,16 +787,7 @@
         grid.appendChild(card)
       })
     }
-    var sel = $('#fService')
-    if (sel) {
-      clear(sel)
-      sel.appendChild(make('option', null, 'فحص وتشخيص عام'))
-      list.forEach(function (s) {
-        if (s.showInBookingForm === false) return
-        sel.appendChild(make('option', null, s.title))
-      })
-      sel.appendChild(make('option', null, 'حالة طارئة / ألم'))
-    }
+    /* قائمة الخدمات في نموذج الحجز ثابتة في HTML ولا تُحدَّث من لوحة التحكم */
   }
 
   /* ---------- حالات قبل وبعد ---------- */
