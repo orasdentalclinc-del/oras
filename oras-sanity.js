@@ -544,7 +544,7 @@
 
     /* روابط التواصل الاجتماعي — تملأ أيقونات الفوتر ودوائر الشريط العلوي */
     if (Array.isArray(s.socialLinks) && s.socialLinks.length) {
-      var anchors = $$('.socials a, .tb-socials a')
+      var anchors = $$('.socials a')
         .filter(function (a) {
           return a.id !== 'footWa'
         })
