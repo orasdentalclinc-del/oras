@@ -877,7 +877,7 @@ section + section::after{
 }
 @media(max-width:600px){
   section{padding:72px 0}
-  .gal-grid,.f-row{grid-template-columns:1fr}
+  .f-row{grid-template-columns:1fr}
   /* بطاقات العلاجات بالجوال: اثنتان في الصف بحجم مصغّر */
   .srv-grid{grid-template-columns:1fr 1fr;gap:12px}
   .srv{padding:18px 14px 20px}
@@ -888,7 +888,32 @@ section + section::after{
   .srv p{font-size:.82rem;line-height:1.65}
   .srv-price{margin-top:10px;font-size:.76rem;padding:.18rem .7rem}
   .srv-more{margin-top:10px;font-size:.8rem}
-  .rev-grid,.ptn-grid{grid-template-columns:1fr}
+  /* بطاقات نشاط العيادة بالجوال: اثنتان في الصف بحجم مصغّر */
+  .gal-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .gal-item{border-width:3px}
+  .gal-item figcaption{padding:22px 10px 8px;font-size:.78rem;line-height:1.5}
+  .gal-count{top:8px;left:8px;gap:4px;font-size:.66rem;padding:.18rem .55rem}
+  .gal-count svg{width:11px;height:11px}
+  /* بطاقات الأطباء بالجوال: اثنتان في الصف بحجم مصغّر */
+  .doc-grid{grid-template-columns:1fr 1fr;gap:12px;max-width:none}
+  /* min-width:0 يمنع أي كلمة طويلة من توسيع العمود وإخراج البطاقتين عن الشاشة */
+  .gal-item,.doc,.ptn{min-width:0}
+  .gal-item figcaption,.doc h3,.doc .role,.doc p,.ptn h3,.ptn p{overflow-wrap:break-word}
+  .doc{padding:20px 12px 22px}
+  .doc .avatar{width:74px;height:74px;margin-bottom:12px}
+  .doc h3{font-size:.98rem;line-height:1.55}
+  .doc .role{font-size:.78rem;margin:3px 0 9px}
+  .doc p{font-size:.8rem;line-height:1.6}
+  .doc .chip{margin-top:10px;font-size:.72rem;padding:.2rem .7rem}
+  .doc .bio-more{margin-top:9px;font-size:.74rem;padding:.38rem .9rem}
+  /* بطاقات الشركات بالجوال: اثنتان في الصف بحجم مصغّر */
+  .ptn-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .ptn{padding:18px 12px 20px;gap:8px}
+  .ptn .ptn-logo{width:78px;height:78px;border-radius:16px;padding:9px}
+  .ptn h3{font-size:.92rem;line-height:1.55}
+  .ptn p{font-size:.78rem;line-height:1.6}
+  .ptn .ptn-link{font-size:.76rem}
+  .rev-grid{grid-template-columns:1fr}
   .rev-summary{flex-direction:column;text-align:center;padding:22px}
   .rev-avg{justify-content:center}
   .star-picker{justify-content:center}
