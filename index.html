@@ -82,6 +82,8 @@
   --gold-soft:#F3E5BF; --gold-pale:#FBF6E7; --cream:#FFFDF6;
   --ink:#3D3524; --ink-soft:#6F6448; --line:#EFE4C4;
   --grad-gold:linear-gradient(135deg,#F7E8A9 0%,#E9CE7A 38%,#C9A227 100%);
+  /* تدرّج ذهبي غامق ومشبع — للنصوص الذهبية فوق الخلفيات الفاتحة (التدرّج الفاتح كان يتلاشى فوقها) */
+  --grad-gold-text:linear-gradient(135deg,#6B5310 0%,#A8841C 26%,#D9AE35 54%,#8A6D1F 100%);
   --grad-soft:linear-gradient(180deg,#FFFCF2 0%,#F8EEDA 100%);
   --shadow:0 14px 38px rgba(168,132,28,.12);
   --shadow-sm:0 8px 22px rgba(168,132,28,.10);
@@ -263,6 +265,15 @@ section:has(> .sec-bg) > .container > .sec-head p{color:#4E452D;font-weight:600;
 section:has(> .sec-bg) > .container > .sec-head .kicker{background-color:rgba(255,255,255,.75);color:#7A5F14}
 /* متصفحات لا تدعم :has — على الأقل نُحسّن التباين */
 .sec-head h2{text-shadow:0 1px 0 rgba(255,255,255,.55)}
+/* ══ ذهبي أقوى وأوضح داخل بطاقات عناوين الأقسام ══
+   التدرّج الفاتح القديم كان شبه مفقود فوق البطاقة الزجاجية، والهالة البيضاء حول الحروف كانت تزيده بهتاناً */
+.sec-head h2 .grad-text,
+section:has(> .sec-bg) > .container > .sec-head h2 .grad-text{
+  background:var(--grad-gold-text);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:none; /* إلغاء الهالة البيضاء */
+  filter:drop-shadow(0 1px 1px rgba(96,74,14,.45)); /* حافة داكنة خفيفة تُبرز الحروف */
+}
 
 /* ===== About — صور خلفية كاملة مثل صفحة الهبوط ===== */
 #about{padding:0;min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden;position:relative}
@@ -526,6 +537,22 @@ body.album-locked{overflow:hidden}
 .doc .role{position:relative;z-index:1;color:var(--gold-ink);font-weight:800;font-size:.9rem;margin:4px 0 12px}
 .doc p{position:relative;z-index:1;color:var(--ink-soft);font-size:.92rem}
 .doc .chip{margin-top:14px;display:inline-block;position:relative;z-index:1}
+/* ══ نبذة الطبيب: تُعرض مقتطعة بثلاثة أسطر + زر «تفاصيل أكثر» لتوسيعها ══ */
+.doc .bio{max-height:5.35em;overflow:hidden;transition:max-height .5s ease}
+.doc .bio::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1.9em;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,253,246,0),rgba(255,253,246,.96));transition:opacity .35s}
+.doc .bio.open{max-height:120em}
+.doc .bio.open::after{opacity:0}
+.doc .bio-more{
+  position:relative;z-index:1;display:inline-flex;align-items:center;gap:.4rem;
+  margin-top:12px;border:0;cursor:pointer;font-family:inherit;font-weight:800;font-size:.82rem;
+  color:#4A3A0A;background:var(--grad-gold);padding:.45rem 1.15rem;border-radius:999px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 8px 18px rgba(201,162,39,.32);transition:.25s;
+}
+.doc .bio-more:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 12px 26px rgba(201,162,39,.42)}
+.doc .bio-more .arr{font-size:.72rem;line-height:1;transition:transform .35s}
+.doc .bio-more.open .arr{transform:rotate(180deg)}
+.doc .bio-more[hidden]{display:none}
 
 /* ===== Booking ===== */
 .booking{background:linear-gradient(180deg,#FFFDF6 0%,#FAF1DA 100%)}
@@ -668,7 +695,7 @@ footer::before{content:'';position:absolute;inset:0;background:radial-gradient(6
   padding:22px 28px;margin-bottom:34px;
 }
 .rev-avg{display:flex;align-items:center;gap:16px}
-.rev-avg b{font-size:3rem;font-weight:900;line-height:1;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rev-avg b{font-size:3rem;font-weight:900;line-height:1;background:var(--grad-gold-text);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 1px rgba(96,74,14,.4))}
 .rev-avg-side{display:flex;flex-direction:column;gap:2px}
 .rev-avg-stars{font-size:1.15rem}
 .rev-avg-side small{color:var(--ink-soft);font-weight:700;font-size:.82rem}

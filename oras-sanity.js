@@ -838,6 +838,8 @@
     var grid = $('#docGrid')
     if (!grid || !list || !list.length) return
     clear(grid)
+    /* نبذات الأطباء الطويلة: تُعرض مقتطعة مع زر «تفاصيل أكثر» */
+    var bioRows = []
     list.forEach(function (d, i) {
       var art = make('article', 'doc reveal in')
       var url = imageUrl(d.photo, 240, 240, true)
@@ -869,11 +871,42 @@
       }
       art.appendChild(make('h3', null, d.name))
       if (d.role) art.appendChild(make('div', 'role', d.role))
-      if (d.bio) art.appendChild(make('p', null, d.bio))
+      if (d.bio) {
+        var bioP = make('p', 'bio', d.bio)
+        art.appendChild(bioP)
+        var bioBtn = make('button', 'bio-more')
+        bioBtn.type = 'button'
+        bioBtn.setAttribute('aria-expanded', 'false')
+        bioBtn.hidden = true /* يُكشف بعد القياس إن كان النص يُقتطع فعلاً */
+        var bioLbl = make('span', 'lbl', 'تفاصيل أكثر')
+        var bioArr = make('span', 'arr', '▾')
+        bioBtn.appendChild(bioLbl)
+        bioBtn.appendChild(bioArr)
+        bioBtn.addEventListener('click', function () {
+          var open = bioP.classList.toggle('open')
+          bioBtn.classList.toggle('open', open)
+          bioBtn.setAttribute('aria-expanded', open ? 'true' : 'false')
+          bioLbl.textContent = open ? 'تفاصيل أقل' : 'تفاصيل أكثر'
+        })
+        art.appendChild(bioBtn)
+        bioRows.push({ p: bioP, btn: bioBtn })
+      }
       if (d.badge) art.appendChild(make('span', 'chip', d.badge))
       grid.appendChild(art)
     })
     grid.removeAttribute('hidden')
+    /* إظهار الزر فقط للنبذات الطويلة التي تُقتطع في الوضع المطوي */
+    var measureBios = function () {
+      bioRows.forEach(function (r) {
+        if (r.p.classList.contains('open')) return /* لا تُخفِ الزر أثناء التوسيع */
+        r.btn.hidden = !(r.p.scrollHeight - r.p.clientHeight > 4)
+      })
+    }
+    measureBios()
+    /* إعادة القياس بعد اكتمال تحميل الخط — التفاف الأسطر قد يتغيّر */
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(measureBios)
+    }
   }
 
   /* ---------- نشاط العيادة (بطاقة + ألبوم صور) ---------- */
