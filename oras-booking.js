@@ -359,14 +359,34 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
   }
 
   // زر واتساب: مسار مستقل تماماً — لا فحص توفر ولا تسجيل آلي
+  // التاريخ والساعة إلزاميان: تظهر رسالة خطأ إن لم يُحدَّدا.
   function handleWhatsAppClick() {
     var f = readForm();
+
+    // 1) الاسم ورقم الهاتف
     if (!f.name || !f.phone) {
+      showStatus('warn', '⚠️ <span>من فضلك أدخل الاسم الكامل ورقم الهاتف.</span>');
       showToastMsg('من فضلك أدخل الاسم ورقم الهاتف');
       if (!f.name && f.nameInput) f.nameInput.focus();
       else if (!f.phone && f.phoneInput) f.phoneInput.focus();
       return;
     }
+
+    // 2) التاريخ إلزامي — رسالة خطأ إن لم يُكتب
+    if (!f.date) {
+      showStatus('warn', '📅 <span>اختر <b>تاريخ الزيارة</b> أولاً — التاريخ حقل <b>إلزامي</b> عند الحجز عبر واتساب.</span>');
+      showToastMsg('⚠️ من فضلك اختر تاريخ الزيارة');
+      if (f.dateInput) f.dateInput.focus();
+      return;
+    }
+
+    // 3) الساعة إلزامية — رسالة خطأ إن لم تُختَر
+    if (!f.hour) {
+      showStatus('warn', '🕐 <span>اختر <b>ساعة الحجز</b> من الجدول (من 8:00 صباحاً حتى 7:00 مساءً) — الساعة حقل <b>إلزامي</b> عند الحجز عبر واتساب.</span>');
+      showToastMsg('⚠️ من فضلك اختر ساعة الحجز');
+      return;
+    }
+
     openWhatsApp(f);
   }
 
