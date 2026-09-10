@@ -36,7 +36,7 @@ npm install
 npx sanity login          # سجّل دخولك (Google / GitHub / بريد)
 ```
 
-> المشروع منشأ بالفعل — معرفه **`j4rqm0i8`**. لا حاجة لـ `sanity init`.
+> المشروع منشأ بالفعل — معرفه **`upxb9w10`**. لا حاجة لـ `sanity init`.
 
 ### 2) ربط اللوحة بالمشروع
 
@@ -47,7 +47,7 @@ cp .env.example .env
 الملف يجب أن يحتوي على:
 
 ```
-SANITY_STUDIO_PROJECT_ID=j4rqm0i8
+SANITY_STUDIO_PROJECT_ID=upxb9w10
 SANITY_STUDIO_DATASET=production
 ```
 

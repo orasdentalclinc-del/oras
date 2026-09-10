@@ -239,6 +239,7 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
     var serviceInput = document.getElementById('fService');
     var dateInput = document.getElementById('fDate');
     var notesInput = document.getElementById('fNotes');
+    var hpInput = document.getElementById('fHp');
     var hourRadio = document.querySelector('input[name="hour"]:checked');
     return {
       name: nameInput ? nameInput.value.trim() : '',
@@ -247,10 +248,18 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
       date: dateInput ? dateInput.value : '',
       hour: hourRadio ? hourRadio.value : '',
       notes: notesInput ? notesInput.value.trim() : '',
+      hp: hpInput ? hpInput.value : '',
       nameInput: nameInput,
       phoneInput: phoneInput,
       dateInput: dateInput
     };
+  }
+
+  // تهريب أي نص قبل إدراجه في HTML — يمنع أي حقن عبر رسائل الخادم أو المدخلات
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
   }
 
   function showToastMsg(msg) {
@@ -500,7 +509,8 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
       date: dateStr,
       hour: hourStr,
       notes: f.notes || '—',
-      source: 'موقع عيادة أوراس'
+      source: 'موقع عيادة أوراس',
+      hp: f.hp || ''
     }, function (res) {
       busy = false;
       setSubmitBusy(false);
@@ -510,7 +520,7 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
         var k = hourKey(dateStr, hourStr);
         state.taken[k] = (state.taken[k] || 0) + 1;
         showStatus('ok',
-          '🎉 <span><b>تم تأكيد حجزك بنجاح!</b><br>📅 ' + dateWord + ' — 🕐 ' + hourLabel(hourStr) + ' (' + hourRange(hourStr) + ')<br>سنتواصل معك على الرقم ' + f.phone + ' لتأكيد التفاصيل. مراجعة الحجز عبر واتساب اختيارية:</span>'
+          '🎉 <span><b>تم تأكيد حجزك بنجاح!</b><br>📅 ' + dateWord + ' — 🕐 ' + hourLabel(hourStr) + ' (' + hourRange(hourStr) + ')<br>سنتواصل معك على الرقم ' + escapeHtml(f.phone) + ' لتأكيد التفاصيل. مراجعة الحجز عبر واتساب اختيارية:</span>'
           + '<div style="margin-top:8px"><button type="button" class="booking-alt-btn" id="waAfterBook">إرسال تفاصيل الحجز عبر واتساب</button></div>');
         var waAfter = document.getElementById('waAfterBook');
         if (waAfter) waAfter.addEventListener('click', function () { openWhatsApp(f); });
@@ -524,7 +534,7 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
               return { date: a.date, hour: a.hour, label: a.label || (a.date + ' — ' + hourLabel(a.hour)) };
             })
           : findAlternatives(dateStr, hourStr, 3);
-        showStatus('err', '⚠️ <span><b>غير متاح</b> — ' + (res.reason || 'الموعد المطلوب محجوز وممتلئ') + '</span>' + renderAlts(alts));
+        showStatus('err', '⚠️ <span><b>غير متاح</b> — ' + escapeHtml(res.reason || 'الموعد المطلوب محجوز وممتلئ') + '</span>' + renderAlts(alts));
         bindAltButtons();
         showToastMsg('⚠️ الموعد لم يعد متاحاً — اختر أحد البدائل المقترحة');
         return;
