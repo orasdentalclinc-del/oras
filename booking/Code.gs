@@ -310,6 +310,8 @@ function saveReviewToSanity(review) {
     return { ok: false, error: 'لم يُضبط توكن Sanity في CONFIG (SANITY_WRITE_TOKEN)' };
   }
   var url = 'https://' + CONFIG.SANITY_PROJECT_ID + '.api.sanity.io/v' + CONFIG.SANITY_API_VERSION + '/data/mutate/' + CONFIG.SANITY_DATASET;
+  // ملاحظة أمنية: لا يُخزَّن رقم الهاتف إطلاقاً في Sanity — الـ dataset عام القراءة،
+  // وأي بيانات شخصية فيه تصبح مكشوفة عبر API. الهاتف يبقى لدى العيادة فقط (واتساب/الإيميل).
   var doc = {
     _type: 'review',
     name: review.name,
@@ -319,7 +321,6 @@ function saveReviewToSanity(review) {
     featured: false,
     order: 0
   };
-  if (review.phone) doc.phone = review.phone;
   if (review.comment) doc.comment = review.comment;
   if (review.surveyAnswers && review.surveyAnswers.length) {
     doc.surveyAnswers = review.surveyAnswers;
@@ -463,18 +464,36 @@ function doPost(e) {
       data = e.parameter;
     }
 
+    // ─── مصيدة الروبوتات (Honeypot): حقل مخفي لا يملؤه البشر ───
+    // إن وُجدت فيه قيمة فالطلب من روبوت — نتجاهله بردّ نجاح وهمي بدون أي تسجيل.
+    var honeypot = String(data.hp || data.website || '').trim();
+    if (honeypot) {
+      lock.releaseLock();
+      return jsonResponse({ ok: true, id: '', message: 'تم استلام طلبك بنجاح' });
+    }
+
     // مسار التقييمات: يصل من الموقع بحقل rating -> يُحفظ في لوحة تحكم Sanity فقط
     if (data.rating !== undefined && data.rating !== null && String(data.rating).trim() !== '') {
       return handleReviewPost(data);
     }
 
-    var name = String(data.name || '').trim();
-    var phone = String(data.phone || '').trim();
-    var service = String(data.service || 'فحص وتشخيص عام').trim();
+    var name = String(data.name || '').trim().slice(0, 120);
+    var phone = String(data.phone || '').trim().slice(0, 40);
+    var service = String(data.service || 'فحص وتشخيص عام').trim().slice(0, 120);
     var date = String(data.date || '').trim();
     var hour = String(data.hour || data.period || '').trim();
-    var notes = String(data.notes || '').trim();
-    var source = String(data.source || 'موقع عيادة أوراس').trim();
+    var notes = String(data.notes || '').trim().slice(0, 1000);
+    var source = String(data.source || 'موقع عيادة أوراس').trim().slice(0, 120);
+
+    // قبول التاريخ فقط بصيغة YYYY-MM-DD — يضمن سلامة أي رسالة تُبنى عليه
+    if (date && !parseDateString(date)) {
+      lock.releaseLock();
+      return jsonResponse({
+        ok: false,
+        conflict: true,
+        reason: 'صيغة التاريخ غير صحيحة — يرجى اختيار التاريخ من التقويم.'
+      });
+    }
 
     if (!name || !phone) {
       lock.releaseLock();

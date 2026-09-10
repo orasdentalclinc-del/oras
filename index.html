@@ -1324,6 +1324,11 @@ section + section::after{
           <label for="fNotes">ملاحظات إضافية</label>
           <textarea id="fNotes" placeholder="اكتب أي تفاصيل تساعدنا نجهز لزيارتك…"></textarea>
         </div>
+        <!-- حقل مصيدة مخفي: البشر لا يرونه ولا يملؤونه — أي قيمة فيه تعني روبوتاً -->
+        <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">
+          <label for="fHp">اترك هذا الحقل فارغاً</label>
+          <input type="text" id="fHp" name="website" tabindex="-1" autocomplete="off">
+        </div>
         <!-- رسالة «متاح / غير متاح» — تظهر هنا بعد الضغط على زر الحجز -->
         <div class="booking-status" id="bookingStatusBox" role="status" aria-live="polite"></div>
         <div class="book-actions">
@@ -1511,6 +1516,12 @@ section + section::after{
     <div class="field">
       <label for="rvText">تعليقك عن الخدمة</label>
       <textarea id="rvText" placeholder="اكتب رأيك عن تجربتك في العيادة…"></textarea>
+    </div>
+
+    <!-- حقل مصيدة مخفي ضد التقييمات الآلية المزعجة -->
+    <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">
+      <label for="rvHp">اترك هذا الحقل فارغاً</label>
+      <input type="text" id="rvHp" name="website" tabindex="-1" autocomplete="off">
     </div>
 
     <div class="survey">
@@ -1862,6 +1873,7 @@ $('#revSubmit').addEventListener('click', () => {
     })
     .filter(Boolean);
 
+  const hpEl = $('#rvHp');
   const payload = {
     name: name,
     rating: revRating,
@@ -1869,7 +1881,8 @@ $('#revSubmit').addEventListener('click', () => {
     phone: phone,
     surveyAnswers: surveyAnswerRows,
     source: 'website',
-    status: 'pending'
+    status: 'pending',
+    hp: hpEl ? hpEl.value : ''
   };
 
   const finishOk = () => {
@@ -2130,7 +2143,7 @@ window.orasAboutSlider = (function () {
 <script>
   window.ORAS_SANITY_CONFIG = { projectId: 'upxb9w10', dataset: 'production' };
 </script>
-<script src="oras-sanity.js?v=11" defer></script>
-<script src="oras-booking.js?v=3" defer></script>
+<script src="oras-sanity.js?v=12" defer></script>
+<script src="oras-booking.js?v=4" defer></script>
 </body>
 </html>

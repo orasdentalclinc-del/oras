@@ -20,7 +20,7 @@ export default {
   icon: StarIcon,
   fields: [
     {name: 'name', title: 'اسم المريض', type: 'string', validation: (R) => R.required()},
-    {name: 'phone', title: 'رقم الهاتف (اختياري)', type: 'string', description: 'يصل تلقائياً من نموذج التقييم في الموقع'},
+    {name: 'phone', title: 'رقم الهاتف (اختياري)', type: 'string', description: 'حقل إرثي — لم يعد يُخزَّن تلقائياً حمايةً للخصوصية (البيانات هنا عامة القراءة)'},
     {
       name: 'rating',
       title: 'التقييم (1 إلى 5 نجوم)',
