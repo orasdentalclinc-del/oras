@@ -314,6 +314,20 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
     }
   }
 
+  // ─── جسر الإحصاءات: يُرسل الحدث إلى GoatCounter إن كان مضبوطاً، ويتجاهله بهدوء إن لم يكن ───
+  // (التعريف الكامل في oras-analytics.js — لا يُرسل أي طلب ما لم يُضبط كود الموقع)
+  var trackSeen = {}; // منع عدّ الحدث نفسه مرتين خلال 1.5 ثانية (ضغطات متتالية/بدائل)
+  function trackEvent(name, data) {
+    try {
+      var now = Date.now();
+      if (trackSeen[name] && (now - trackSeen[name]) < 1500) return;
+      trackSeen[name] = now;
+      if (window.ORAS_ANALYTICS && typeof window.ORAS_ANALYTICS.track === 'function') {
+        window.ORAS_ANALYTICS.track(name, data);
+      }
+    } catch (e) { /* الإحصاء لا يجب أن يكسر الحجز أبداً */ }
+  }
+
   // ─── تسجيل الحجز على الخادم (الحجز الآلي) ───
   function submitBooking(payload, onDone) {
     var xhr = new XMLHttpRequest();
@@ -345,7 +359,7 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
   }
 
   // ─── زر واتساب المنفصل: تجهيز الرسالة وفتح واتساب مباشرة ───
-  function openWhatsApp(payload) {
+  function openWhatsApp(payload, source) {
     var brandEl = document.querySelector('.brandShort');
     var clinic = (brandEl && brandEl.textContent) ? brandEl.textContent.trim() : 'أوراس';
     var msg =
@@ -362,6 +376,8 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
 
     var waNum = window.__WA__ || '249912345678';
     var url = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg);
+    // زر واتساب هنا يفتح بـ window.open (لا نقر على <a>) — لذا يُحسب صراحةً
+    trackEvent('whatsapp_click', { to: '+' + waNum, where: source || 'booking' });
     var win = window.open(url, '_blank');
     if (!win) window.location.href = url;
     showToastMsg('✅ تم تجهيز طلبك — أكمل الإرسال من واتساب');
@@ -396,7 +412,7 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
       return;
     }
 
-    openWhatsApp(f);
+    openWhatsApp(f, 'booking-form');
   }
 
   // ─── المسار الآلي: فحص التوفر يبدأ فقط بعد الضغط على زر الحجز ───
@@ -405,6 +421,12 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
       e.preventDefault();
       if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
     }
+    var f0 = readForm();
+    trackEvent('booking_submit', {
+      service: f0.service || '',
+      date: f0.date || '',
+      hour: f0.hour || ''
+    });
     runAutoBooking();
   }
 
@@ -523,7 +545,12 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
           '🎉 <span><b>تم تأكيد حجزك بنجاح!</b><br>📅 ' + dateWord + ' — 🕐 ' + hourLabel(hourStr) + ' (' + hourRange(hourStr) + ')<br>سنتواصل معك على الرقم ' + escapeHtml(f.phone) + ' لتأكيد التفاصيل. مراجعة الحجز عبر واتساب اختيارية:</span>'
           + '<div style="margin-top:8px"><button type="button" class="booking-alt-btn" id="waAfterBook">إرسال تفاصيل الحجز عبر واتساب</button></div>');
         var waAfter = document.getElementById('waAfterBook');
-        if (waAfter) waAfter.addEventListener('click', function () { openWhatsApp(f); });
+        if (waAfter) waAfter.addEventListener('click', function () { openWhatsApp(f, 'after-booking'); });
+        trackEvent('booking_confirmed', {
+          service: f.service || '',
+          date: dateStr,
+          hour: hourStr
+        });
         showToastMsg('🎉 تم تأكيد حجزك بنجاح — نراك قريباً!');
         return;
       }
