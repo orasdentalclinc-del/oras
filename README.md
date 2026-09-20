@@ -214,8 +214,9 @@ npm run deploy
 
 1. افتح **https://www.goatcounter.com/signup** وسجّل بريداً وكلمة مرور.
 2. عند إضافة الموقع اكتب في **Domain** النطاق: `orasdentalclinic.com`
-3. اختر **Site code** — وليكن مثلاً `orasdentalclinic`، فيصبح رابطك:
-   `https://orasdentalclinic.goatcounter.com`
+3. **Site code** — الموقع جاهز بالكود `oras-dental`، أي الرابط:
+   `https://oras-dental.goatcounter.com`
+   (لو اخترت كوداً مختلفاً، غيّره في `index.html` — انظر الخطوة 2)
 4. افتح الرابط — تظهر لوحة الإحصاء (فارغة حتى الآن).
 
 ### 2) ربط الموقع (الخطوة الوحيدة المطلوبة منك)
@@ -224,7 +225,7 @@ npm run deploy
 
 ```js
 window.ORAS_GOATCOUNTER = {
-  code: 'orasdentalclinic',     // ← كود موقعك (الجزء الأول من MYCODE.goatcounter.com)
+  code: 'oras-dental',          // ← كود موقعك (الجزء الأول من MYCODE.goatcounter.com)
   showVisitorCounter: false,
   trackLocal: false
 };
@@ -237,7 +238,7 @@ window.ORAS_GOATCOUNTER = {
 
 ### 3) أين ترى عدد الزوار؟
 
-**أ) اللوحة (الأسهل):** افتح `https://orasdentalclinic.goatcounter.com`
+**أ) اللوحة (الأسهل):** افتح `https://oras-dental.goatcounter.com`
 
 | الرقم | معناه |
 |---|---|
@@ -251,13 +252,13 @@ window.ORAS_GOATCOUNTER = {
 
 ```bash
 # عدد الزوار لكل يوم خلال آخر شهر
-curl -s 'https://orasdentalclinic.goatcounter.com/api/v0/stats/hits?start=2026-09-01&end=2026-09-30&daily=1' \
+curl -s 'https://oras-dental.goatcounter.com/api/v0/stats/hits?start=2026-09-01&end=2026-09-30&daily=1' \
   -H "Authorization: Bearer $GOAT_TOKEN"
 ```
 
 ```bash
 # إجمالي الزوار للفترة كلها
-curl -s 'https://orasdentalclinic.goatcounter.com/api/v0/stats/total?start=2026-09-01&end=2026-09-30' \
+curl -s 'https://oras-dental.goatcounter.com/api/v0/stats/total?start=2026-09-01&end=2026-09-30' \
   -H "Authorization: Bearer $GOAT_TOKEN"
 ```
 
