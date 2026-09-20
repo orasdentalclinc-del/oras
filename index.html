@@ -663,6 +663,10 @@ footer::before{content:'';position:absolute;inset:0;background:radial-gradient(6
 .socials a:hover{background:var(--grad-gold);color:#4A3A0A;transform:translateY(-3px)}
 .foot-contact li{display:flex;gap:.7rem;align-items:flex-start;padding:6px 0}
 .copyright{border-top:1px solid rgba(201,162,39,.25);padding:20px 0;text-align:center;font-size:.88rem;color:#B8AE92;position:relative}
+/* عدّاد الزوار (GoatCounter) — يظهر فقط بعد ضبط الكود وتفعيل showVisitorCounter */
+.gc-visitors{display:inline-flex;align-items:baseline;gap:6px;margin-top:10px;font-size:.8rem;color:#8E8672;direction:ltr}
+.gc-visitors[hidden]{display:none}
+.gc-visitors .gc-num{color:var(--gold,#C9A227);font-weight:800;font-size:.95rem;letter-spacing:.02em}
 
 /* ===== Lightbox ===== */
 .lightbox{
@@ -1453,6 +1457,9 @@ section + section::after{
         </ul>
       </div>
     </div>
+    <!-- عدّاد الزوار: مخفي افتراضياً — يظهر تلقائياً بعد ضبط كود GoatCounter وتفعيل
+         showVisitorCounter في أسفل الصفحة (يلزم تفعيل العدّاد العلني من إعدادات GoatCounter) -->
+    <div class="gc-visitors" id="gcVisitorCount" hidden aria-live="polite"></div>
     <div class="copyright">© <span id="year">2026</span> <span id="cprName">عيادة أوراس لطب الأسنان</span> — جميع الحقوق محفوظة.</div>
   </div>
 </footer>
@@ -1886,6 +1893,9 @@ $('#revSubmit').addEventListener('click', () => {
   };
 
   const finishOk = () => {
+    if (window.ORAS_ANALYTICS && typeof window.ORAS_ANALYTICS.track === 'function') {
+      window.ORAS_ANALYTICS.track('review_submitted', { rating: revRating });
+    }
     $('#revThanks').removeAttribute('hidden');
     showToast('✅ تم استلام تقييمك — سيظهر على الموقع بعد مراجعته');
     setTimeout(() => {
@@ -2143,6 +2153,20 @@ window.orasAboutSlider = (function () {
 <script>
   window.ORAS_SANITY_CONFIG = { projectId: 'upxb9w10', dataset: 'production' };
 </script>
+<script>
+  /* ═══════════ إحصاءات الزوار (GoatCounter) ═══════════
+     اكتب هنا «كود موقعك» في GoatCounter — وهو الجزء الأول من رابطك:
+         https://MYCODE.goatcounter.com   ←   code: 'MYCODE'
+     مثال: أنشأت الموقع بالاسم orasdentalclinic ← الرابط orasdentalclinic.goatcounter.com
+     اتركه فارغاً ('') ليبقى الإحصاء معطلاً — لا يُرسل أي طلب ولا يتأثر الموقع.
+     التفاصيل الكاملة: قسم «📊 إحصاءات الزوار» في README.md */
+  window.ORAS_GOATCOUNTER = {
+    code: 'oras-dental',         // موقعك: https://oras-dental.goatcounter.com
+    showVisitorCounter: false,   // true = إظهار رقم الزوار في التذييل (يلزم تفعيل العدّاد العلني في GoatCounter)
+    trackLocal: false            // true = عدّ الزيارات أثناء التطوير المحلي أيضاً (غير منصوح به)
+  };
+</script>
+<script src="oras-analytics.js?v=1" defer></script>
 <script src="oras-sanity.js?v=12" defer></script>
 <script src="oras-booking.js?v=4" defer></script>
 </body>
