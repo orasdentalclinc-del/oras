@@ -541,11 +541,17 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
         // تحديث الإشغال محلياً
         var k = hourKey(dateStr, hourStr);
         state.taken[k] = (state.taken[k] || 0) + 1;
+
+        // شاشة تأكيد الحجز: تذكرة تفاصيل الموعد تظهر للمريض فور التأكيد
+        var ticketData = buildTicketData(f, res);
+        showBookingConfirmation(ticketData);
+
+        // رسالة النجاح داخل النموذج + زر لإعادة فتح التذكرة في أي وقت
         showStatus('ok',
-          '🎉 <span><b>تم تأكيد حجزك بنجاح!</b><br>📅 ' + dateWord + ' — 🕐 ' + hourLabel(hourStr) + ' (' + hourRange(hourStr) + ')<br>سنتواصل معك على الرقم ' + escapeHtml(f.phone) + ' لتأكيد التفاصيل. مراجعة الحجز عبر واتساب اختيارية:</span>'
-          + '<div style="margin-top:8px"><button type="button" class="booking-alt-btn" id="waAfterBook">إرسال تفاصيل الحجز عبر واتساب</button></div>');
-        var waAfter = document.getElementById('waAfterBook');
-        if (waAfter) waAfter.addEventListener('click', function () { openWhatsApp(f, 'after-booking'); });
+          '🎉 <span><b>تم تأكيد حجزك بنجاح!</b> رقم الحجز: <b dir="ltr">' + escapeHtml(ticketData.ref) + '</b><br>📅 ' + dateWord + ' — 🕐 ' + hourLabel(hourStr) + ' (' + hourRange(hourStr) + ')<br>افتح التذكرة لعرض كل التفاصيل أو إرسالها لنفسك عبر واتساب:</span>'
+          + '<div style="margin-top:8px"><button type="button" class="booking-alt-btn" id="bkViewTicket">🎟️ عرض تفاصيل الحجز</button></div>');
+        var viewBtn = document.getElementById('bkViewTicket');
+        if (viewBtn) viewBtn.addEventListener('click', function () { openConfirm(); });
         trackEvent('booking_confirmed', {
           service: f.service || '',
           date: dateStr,
@@ -591,11 +597,272 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
     }
   }
 
+  // ─────────────────────────────────────────────────────────────
+  //  شاشة تأكيد الحجز — «تذكرة الموعد» التي تظهر للمريض بعد التأكيد
+  //  تُعرض في نافذة زجاجية بنفس هوية الموقع وفيها كل تفاصيل الحجز:
+  //  رقم الحجز، الاسم، الهاتف، الخدمة، اليوم والتاريخ، الساعة، الملاحظات
+  //  مع أزرار: تقويم Google، واتساب، طباعة/PDF، حجز موعد آخر.
+  //  تُحفظ نسخة على الجهاز (localStorage) لتظهر زر «عرض تفاصيل حجزي» لاحقاً.
+  // ─────────────────────────────────────────────────────────────
+  var BK_STORE_KEY = 'orasLastBooking';
+  var currentTicket = null; // بيانات التذكرة المعروضة حالياً
+
+  // رقم الحجز: يُؤخذ من رقم الصف في جدول الحجوزات إن توفر، وإلا يُبنى من التاريخ والساعة
+  function buildBookingRef(res, dateStr, hourVal) {
+    var id = res ? res.id : null;
+    var n = parseInt(id, 10);
+    if (!isNaN(n) && n > 0) return 'ORAS-' + ('0000' + n).slice(-4);
+    var ds = (dateStr || '').replace(/-/g, '').slice(2); // 2026-09-29 → 260929
+    var hh = (hourVal || '').split(':')[0];
+    if (hh.length === 1) hh = '0' + hh;
+    return 'ORAS-' + (ds || '000000') + (hh ? '-' + hh : '');
+  }
+
+  // وصف اليوم بالنسبة لليوم: اليوم / غداً / بعد X أيام
+  function relativeDayLabel(dateStr) {
+    var today = parseDateObj(getTodayStr());
+    var d = parseDateObj(dateStr);
+    if (!today || !d) return '';
+    var diff = Math.round((d.getTime() - today.getTime()) / 86400000);
+    if (diff === 0) return 'اليوم';
+    if (diff === 1) return 'غداً';
+    if (diff === 2) return 'بعد يومين';
+    if (diff > 2 && diff <= 10) return 'بعد ' + diff + ' أيام';
+    if (diff > 10) return 'بعد ' + diff + ' يوماً';
+    return '';
+  }
+
+  // تجميع بيانات التذكرة من النموذج + استجابة الخادم
+  function buildTicketData(f, res) {
+    var d = parseDateObj(f.date);
+    return {
+      ref: buildBookingRef(res, f.date, f.hour),
+      name: f.name || '',
+      phone: f.phone || '',
+      service: f.service || 'فحص وتشخيص',
+      date: f.date || '',
+      hour: f.hour || '',
+      dayName: d ? dayNames[d.getDay()] : '',
+      rel: relativeDayLabel(f.date),
+      hourLabel: hourLabel(f.hour || ''),
+      hourRange: f.hour ? hourRange(f.hour) : '',
+      notes: (f.notes && f.notes !== '—') ? f.notes : '',
+      ts: new Date().getTime()
+    };
+  }
+
+  // رابط «أضف إلى تقويم Google» — موعد مدته ساعة بتوقيت العيادة
+  function buildGcalUrl(t) {
+    if (!t || !t.date || !t.hour) return '';
+    var d = parseDateObj(t.date);
+    var h = parseInt(t.hour, 10);
+    if (!d || isNaN(h)) return '';
+    var start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, 0, 0);
+    var end = new Date(d.getFullYear(), d.getMonth(), d.getDate(), h + 1, 0, 0);
+    function fmt(dt) {
+      return '' + dt.getFullYear() + pad2(dt.getMonth() + 1) + pad2(dt.getDate()) +
+        'T' + pad2(dt.getHours()) + '0000';
+    }
+    var details =
+      'رقم الحجز: ' + t.ref + '\n' +
+      'الاسم: ' + t.name + '\n' +
+      'الخدمة: ' + t.service + '\n' +
+      'الساعة: ' + t.hourRange + ' (' + t.hourLabel + ')';
+    return 'https://calendar.google.com/calendar/render?' + [
+      'action=TEMPLATE',
+      'text=' + encodeURIComponent('🦷 موعد عيادة أوراس — ' + t.service),
+      'dates=' + fmt(start) + '/' + fmt(end),
+      'ctz=Africa/Khartoum',
+      'details=' + encodeURIComponent(details),
+      'location=' + encodeURIComponent('عيادة أوراس لطب الأسنان — شارع الستين، الخرطوم، السودان')
+    ].join('&');
+  }
+
+  // رسالة واتساب جاهزة تُشارك من التذكرة بعد التأكيد
+  function buildTicketWaMessage(t) {
+    return '🦷 تفاصيل حجزي — عيادة أوراس لطب الأسنان\n' +
+      '────────────────\n' +
+      '🎟️ رقم الحجز: ' + t.ref + '\n' +
+      '👤 الاسم: ' + t.name + '\n' +
+      '📞 الهاتف: ' + t.phone + '\n' +
+      '🩺 الخدمة: ' + t.service + '\n' +
+      '📅 التاريخ: ' + t.dayName + ' ' + t.date + (t.rel ? ' (' + t.rel + ')' : '') + '\n' +
+      '🕐 الساعة: ' + t.hourLabel + ' (' + t.hourRange + ')\n' +
+      (t.notes ? '📝 ملاحظات: ' + t.notes + '\n' : '') +
+      '────────────────\n' +
+      'تم الحجز عبر موقع العيادة';
+  }
+
+  function buildTicketRows(t) {
+    var rows = [
+      { ic: '👤', label: 'الاسم', val: escapeHtml(t.name) },
+      { ic: '📞', label: 'رقم الهاتف', val: '<span dir="ltr">' + escapeHtml(t.phone) + '</span>' },
+      { ic: '🩺', label: 'الخدمة المطلوبة', val: escapeHtml(t.service) },
+      { ic: '📅', label: 'اليوم والتاريخ', val: escapeHtml(t.dayName + ' ' + t.date) + (t.rel ? '<small>' + escapeHtml(t.rel) + '</small>' : '') },
+      { ic: '🕐', label: 'ساعة الحجز', val: escapeHtml(t.hourLabel) + '<small dir="ltr">' + escapeHtml(t.hourRange) + '</small>' }
+    ];
+    if (t.notes) rows.push({ ic: '📝', label: 'ملاحظات', val: escapeHtml(t.notes), wide: true });
+    var html = '';
+    for (var i = 0; i < rows.length; i++) {
+      html += '<div class="bk-row' + (rows[i].wide ? ' wide' : '') + '">' +
+        '<span class="bic" aria-hidden="true">' + rows[i].ic + '</span>' +
+        '<div style="min-width:0"><b>' + rows[i].label + '</b><span class="bk-val">' + rows[i].val + '</span></div>' +
+        '</div>';
+    }
+    return html;
+  }
+
+  // حفظ نسخة من التذكرة على جهاز المريض + إظهار زر «عرض تفاصيل حجزي»
+  function saveTicketStore(t) {
+    try {
+      localStorage.setItem(BK_STORE_KEY, JSON.stringify(t));
+      var wrap = document.getElementById('bkMineWrap');
+      if (wrap) wrap.hidden = false;
+    } catch (e) { /* التخزين المحلي غير متاح — لا يؤثر على الحجز */ }
+  }
+
+  function loadTicketStore() {
+    try {
+      var raw = localStorage.getItem(BK_STORE_KEY);
+      if (!raw) return null;
+      var t = JSON.parse(raw);
+      if (!t || !t.date || !t.hour || !t.name) return null;
+      if (isPastDate(t.date)) return null; // حجز ماضٍ — لا يُعرض
+      return t;
+    } catch (e) { return null; }
+  }
+
+  // فتح / إغلاق شاشة التأكيد
+  function openConfirm() {
+    var el = document.getElementById('bkConfirm');
+    if (!el) return;
+    el.classList.add('open');
+    el.setAttribute('aria-hidden', 'false');
+    if (document.body) document.body.classList.add('bk-locked');
+    var x = document.getElementById('bkConfirmClose');
+    if (x) x.focus();
+    trackEvent('booking_ticket_open', {});
+  }
+
+  function closeConfirm() {
+    var el = document.getElementById('bkConfirm');
+    if (!el) return;
+    el.classList.remove('open');
+    el.setAttribute('aria-hidden', 'true');
+    if (document.body) document.body.classList.remove('bk-locked');
+  }
+
+  function isConfirmOpen() {
+    var el = document.getElementById('bkConfirm');
+    return !!(el && el.classList.contains('open'));
+  }
+
+  // عرض التذكرة: بناء التفاصيل + حفظها على الجهاز + فتح الشاشة
+  function showBookingConfirmation(t) {
+    var details = document.getElementById('bkDetails');
+    var refEl = document.getElementById('bkRef');
+    var gcal = document.getElementById('bkGcalBtn');
+    if (details) details.innerHTML = buildTicketRows(t);
+    if (refEl) refEl.innerHTML = escapeHtml(t.ref) + '<small>رقم الحجز</small>';
+    if (gcal) {
+      var url = buildGcalUrl(t);
+      if (url) { gcal.href = url; gcal.style.display = ''; }
+      else gcal.style.display = 'none';
+    }
+    currentTicket = t;
+    saveTicketStore(t);
+    openConfirm();
+  }
+
+  // مشاركة التذكرة عبر واتساب (زر داخل الشاشة — يُحسب صراحةً لأنه window.open)
+  function shareTicketWhatsApp() {
+    if (!currentTicket) return;
+    var waNum = window.__WA__ || '249912345678';
+    var url = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(buildTicketWaMessage(currentTicket));
+    trackEvent('whatsapp_click', { to: '+' + waNum, where: 'booking-ticket' });
+    var win = window.open(url, '_blank');
+    if (!win) window.location.href = url;
+  }
+
+  // طباعة التذكرة وحدها (حفظ PDF يعمل من نفس زر الطباعة)
+  function printTicket() {
+    if (!isConfirmOpen()) return;
+    if (document.body) document.body.classList.add('bk-printing');
+    trackEvent('ticket_print', {});
+    window.print();
+  }
+
+  function resetFormAfterBooking() {
+    closeConfirm();
+    var form = document.getElementById('bookForm');
+    if (form && typeof form.reset === 'function') {
+      form.reset();
+      var dateInput = document.getElementById('fDate');
+      if (dateInput) dateInput.min = getTodayStr();
+    }
+    hideStatus();
+    var bookingSec = document.getElementById('booking');
+    if (bookingSec && bookingSec.scrollIntoView) {
+      try { bookingSec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    }
+  }
+
+  // ربط أزرار شاشة التأكيد (مرة واحدة عند التهيئة)
+  function initConfirmScreen() {
+    var modal = document.getElementById('bkConfirm');
+    if (!modal) return;
+
+    var closeBtn = document.getElementById('bkConfirmClose');
+    if (closeBtn) closeBtn.addEventListener('click', closeConfirm);
+
+    // النقر على الخلفية (لا على التذكرة) يغلق الشاشة
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) closeConfirm();
+    });
+
+    // زر Escape يغلق الشاشة
+    document.addEventListener('keydown', function (e) {
+      if ((e.key === 'Escape' || e.keyCode === 27) && isConfirmOpen()) closeConfirm();
+    });
+
+    var waBtn = document.getElementById('bkTicketWa');
+    if (waBtn) waBtn.addEventListener('click', shareTicketWhatsApp);
+
+    var printBtn = document.getElementById('bkPrintBtn');
+    if (printBtn) printBtn.addEventListener('click', printTicket);
+
+    var againBtn = document.getElementById('bkAgainBtn');
+    if (againBtn) againBtn.addEventListener('click', resetFormAfterBooking);
+
+    // إزالة حالة الطباعة بعد انتهاء الطباعة (أو إلغائها)
+    if (window.addEventListener) {
+      window.addEventListener('afterprint', function () {
+        if (document.body) document.body.classList.remove('bk-printing');
+      });
+    }
+
+    // زر «عرض تفاصيل حجزي»: يعيد فتح آخر تذكرة محفوظة على هذا الجهاز
+    var stored = loadTicketStore();
+    var mineWrap = document.getElementById('bkMineWrap');
+    var mineBtn = document.getElementById('bkMyBookingBtn');
+    if (stored && mineWrap) {
+      mineWrap.hidden = false;
+      if (mineBtn) {
+        mineBtn.addEventListener('click', function () {
+          showBookingConfirmation(stored);
+        });
+      }
+    }
+  }
+
   // ─── التهيئة ───
   function initBooking() {
     var form = document.getElementById('bookForm');
     var dateInput = document.getElementById('fDate');
     var waBtn = document.getElementById('waBookBtn');
+
+    // شاشة تأكيد الحجز (التذكرة) — أزرارها وزر «عرض تفاصيل حجزي»
+    initConfirmScreen();
 
     if (dateInput) {
       dateInput.min = getTodayStr();
@@ -636,7 +903,20 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
       isHourFull: isHourFull,
       isHourPast: isHourPast,
       freeHoursForDate: freeHoursForDate,
-      findAlternatives: findAlternatives
+      findAlternatives: findAlternatives,
+      // شاشة تأكيد الحجز (التذكرة)
+      buildBookingRef: buildBookingRef,
+      relativeDayLabel: relativeDayLabel,
+      buildTicketData: buildTicketData,
+      buildGcalUrl: buildGcalUrl,
+      buildTicketWaMessage: buildTicketWaMessage,
+      buildTicketRows: buildTicketRows,
+      showBookingConfirmation: showBookingConfirmation,
+      openConfirm: openConfirm,
+      closeConfirm: closeConfirm,
+      isConfirmOpen: isConfirmOpen,
+      loadTicketStore: loadTicketStore,
+      getCurrentTicket: function () { return currentTicket; }
     };
   }
 })();
