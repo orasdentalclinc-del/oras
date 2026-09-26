@@ -605,6 +605,94 @@ body.album-locked{overflow:hidden}
 .btn-wa:hover{background:#25D366;color:#fff;transform:translateY(-3px);box-shadow:0 12px 26px rgba(37,211,102,.35)}
 @media(max-width:560px){.hours-grid{grid-template-columns:repeat(3,1fr)}.book-actions{flex-direction:column}}
 .form-note{font-size:.85rem;color:var(--ink-soft);margin-top:14px;display:flex;gap:.5rem;align-items:flex-start}
+
+/* ===== شاشة تأكيد الحجز — «تذكرة الموعد» تظهر بعد التأكيد وفيها تفاصيل الحجز ===== */
+.bk-mine-wrap{text-align:center;margin-top:12px}
+.bk-mine-wrap[hidden]{display:none}
+.bk-confirm{
+  position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(61,53,36,.5);
+  backdrop-filter:blur(12px) saturate(130%);-webkit-backdrop-filter:blur(12px) saturate(130%);
+}
+.bk-confirm.open{display:flex;animation:bkFade .26s ease both}
+@keyframes bkFade{from{opacity:0}to{opacity:1}}
+.bk-ticket{
+  position:relative;width:min(560px,100%);max-height:92vh;overflow:auto;overscroll-behavior:contain;text-align:right;
+  background-color:rgba(255,253,246,.94);
+  background-image:linear-gradient(165deg,rgba(255,255,255,.97) 0%,rgba(255,253,246,.9) 55%,rgba(250,241,218,.94) 100%);
+  border:1px solid rgba(255,255,255,.85);border-radius:26px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 0 0 .5px rgba(201,162,39,.18),0 40px 90px rgba(24,20,12,.42);
+  padding:28px 26px 24px;
+  animation:bkIn .34s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes bkIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+.bk-x{
+  position:absolute;top:16px;left:16px;width:38px;height:38px;border-radius:50%;z-index:3;
+  border:1px solid rgba(201,162,39,.4);background:rgba(255,255,255,.85);color:var(--gold-ink);
+  font-size:1.15rem;font-weight:900;line-height:1;cursor:pointer;transition:.25s;
+}
+.bk-x:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent;transform:rotate(90deg)}
+.bk-head{text-align:center;position:relative;z-index:1}
+.bk-check{
+  width:74px;height:74px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(135deg,#34D399 0%,#16A34A 60%,#15803D 100%);
+  box-shadow:0 14px 30px rgba(21,128,61,.35),inset 0 2px 0 rgba(255,255,255,.45);
+  animation:bkPop .5s cubic-bezier(.2,.8,.25,1) both;
+}
+.bk-check svg{width:38px;height:38px}
+.bk-check path{stroke-dasharray:30;stroke-dashoffset:30;animation:bkDraw .45s .28s ease forwards}
+@keyframes bkDraw{to{stroke-dashoffset:0}}
+@keyframes bkPop{from{transform:scale(.35);opacity:0}to{transform:scale(1);opacity:1}}
+.bk-head h3{font-size:clamp(1.25rem,3vw,1.6rem);font-weight:900;color:#166534;line-height:1.5}
+.bk-head p{color:var(--ink-soft);font-size:.9rem;font-weight:700;margin-top:4px;line-height:1.8}
+.bk-ref{
+  display:inline-block;margin-top:10px;padding:.32rem 1rem;border-radius:999px;direction:ltr;unicode-bidi:embed;
+  background:rgba(201,162,39,.12);border:1.6px dashed rgba(168,132,28,.55);color:var(--gold-ink);
+  font-weight:900;font-size:.88rem;letter-spacing:.5px;
+}
+.bk-ref small{display:block;direction:rtl;font-size:.68rem;color:var(--ink-soft);letter-spacing:0;margin-top:1px}
+.bk-details{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;position:relative;z-index:1}
+.bk-row{
+  display:flex;align-items:flex-start;gap:10px;min-width:0;
+  background:rgba(255,255,255,.66);border:1px solid rgba(201,162,39,.24);border-radius:14px;padding:10px 12px;
+  backdrop-filter:blur(8px) saturate(140%);-webkit-backdrop-filter:blur(8px) saturate(140%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+}
+.bk-row .bic{font-size:1.1rem;line-height:1.5;flex:none}
+.bk-row b{display:block;font-size:.7rem;color:var(--ink-soft);font-weight:800;line-height:1.4}
+.bk-row .bk-val{display:block;font-size:.95rem;font-weight:900;color:#2E2716;line-height:1.55;word-break:break-word}
+.bk-row .bk-val small{display:inline-block;font-size:.72rem;font-weight:800;color:var(--gold-ink);background:rgba(201,162,39,.14);border-radius:999px;padding:.05rem .55rem;margin-inline-start:5px;vertical-align:middle}
+.bk-row.wide{grid-column:1/-1}
+.bk-stub{
+  position:relative;z-index:1;margin-top:16px;padding:12px 8px 4px;text-align:center;
+  border-top:2px dashed rgba(168,132,28,.4);color:var(--ink-soft);font-size:.82rem;font-weight:700;line-height:1.9;
+}
+.bk-stub b{display:block;color:var(--gold-ink);font-size:.9rem;font-weight:900}
+.bk-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;position:relative;z-index:1}
+.bk-actions .btn{width:100%;justify-content:center;font-size:.88rem;padding:.7rem .8rem;white-space:nowrap}
+.bk-actions .bk-wa{background:#fff;border:1.6px solid #25D366;color:#128C4B;transition:.25s}
+.bk-actions .bk-wa:hover{background:#25D366;color:#fff;transform:translateY(-3px);box-shadow:0 12px 26px rgba(37,211,102,.35)}
+body.bk-locked{overflow:hidden}
+/* الطباعة: عند الضغط على «طباعة / PDF» تُطبع التذكرة وحدها */
+@media print{
+  body.bk-printing *{visibility:hidden !important}
+  body.bk-printing .bk-confirm,body.bk-printing .bk-confirm *{visibility:visible !important}
+  body.bk-printing .bk-confirm{display:block !important;position:absolute;top:0;right:0;left:0;padding:0;background:#fff !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;animation:none}
+  body.bk-printing .bk-ticket{box-shadow:none !important;border:none !important;border-radius:0 !important;width:100%;max-height:none;overflow:visible;animation:none;background:#fff !important}
+  body.bk-printing .bk-x,body.bk-printing .bk-actions{display:none !important}
+}
+@media (prefers-reduced-motion:reduce){
+  .bk-confirm.open,.bk-ticket,.bk-check{animation:none}
+  .bk-check path{stroke-dashoffset:0}
+  .bk-x:hover{transform:none}
+}
+@media(max-width:600px){
+  .bk-confirm{padding:10px}
+  .bk-ticket{padding:22px 16px 18px;border-radius:20px;max-height:94vh}
+  .bk-details{grid-template-columns:1fr}
+  .bk-actions{grid-template-columns:1fr}
+}
+
 .book-side{display:grid;gap:20px}
 .info-card{background-color:rgba(255,255,255,.5);background-image:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--r);
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
@@ -1349,6 +1437,10 @@ section + section::after{
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="2" style="flex:none;margin-top:4px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-5M12 8h.01"/></svg>
           بياناتك تُستخدم لتأكيد الموعد فقط — بدون رسائل مزعجة.
         </p>
+        <!-- يظهر بعد أول حجز مؤكد على هذا الجهاز — لإعادة فتح تذكرة تفاصيل الحجز -->
+        <div class="bk-mine-wrap" id="bkMineWrap" hidden>
+          <button type="button" class="btn btn-ghost btn-sm" id="bkMyBookingBtn">🎟️ عرض تفاصيل حجزي</button>
+        </div>
       </form>
       <div class="book-side">
         <a class="info-card wa-hero reveal" href="https://wa.me/249912345678?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D8%A8%D8%AD%D8%AC%D8%B2%20%D9%85%D9%88%D8%B9%D8%AF%20%D9%81%D9%8A%20%D8%B9%D9%8A%D8%A7%D8%AF%D8%A9%20%D8%A3%D9%88%D8%B1%D8%A7%D8%B3." target="_blank" rel="noopener" id="waDirect">
@@ -1544,6 +1636,44 @@ section + section::after{
     <div class="rev-thanks" id="revThanks" hidden>
       <b>★ شكراً لتقييمك!</b>
       <span>تم تجهيز تقييمك وإرساله لإدارة العيادة — سيظهر على الموقع بعد المراجعة والنشر.</span>
+    </div>
+  </div>
+</div>
+
+<!-- شاشة تأكيد الحجز — تذكرة تفاصيل الموعد التي تظهر للمريض بعد تأكيد الحجز -->
+<div class="bk-confirm" id="bkConfirm" role="dialog" aria-modal="true" aria-labelledby="bkConfirmTitle" aria-hidden="true">
+  <div class="bk-ticket" role="document" aria-label="تذكرة تفاصيل الحجز">
+    <button class="bk-x" id="bkConfirmClose" type="button" aria-label="إغلاق تفاصيل الحجز">✕</button>
+    <div class="bk-head">
+      <span class="bk-check" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </span>
+      <h3 id="bkConfirmTitle">تم تأكيد حجزك بنجاح! 🎉</h3>
+      <p>هذه تفاصيل حجزك — احتفظ بها أو أرسلها إلى نفسك عبر واتساب، وسنتواصل معك لتذكيرك بالموعد.</p>
+      <span class="bk-ref" id="bkRef">ORAS-0000<small>رقم الحجز</small></span>
+    </div>
+    <div class="bk-details" id="bkDetails"><!-- تُبنى التفاصيل ديناميكياً بعد التأكيد --></div>
+    <div class="bk-stub">
+      <b>🦷 عيادة أوراس لطب الأسنان</b>
+      <span>📍 شارع الستين، الخرطوم — السودان<br>يرجى الحضور 10 دقائق قبل موعدك — للحاجات الطارئة اتصل أو راسلنا واتساب.</span>
+    </div>
+    <div class="bk-actions">
+      <a class="btn btn-gold" id="bkGcalBtn" href="#" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        أضف إلى تقويم Google
+      </a>
+      <button type="button" class="btn bk-wa" id="bkTicketWa">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5s.8 1.9.8 2c.1.2.1.3 0 .5l-.4.6c-.2.2-.3.3-.1.6.2.3.8 1.2 1.6 2 1.1.9 2 1.2 2.3 1.3.3.1.4.1.6-.1l.9-1c.2-.3.4-.2.7-.1l2 .9c.3.2.5.2.6.4 0 .1 0 .7-.2 1.3z"/></svg>
+        إرسال التفاصيل واتساب
+      </button>
+      <button type="button" class="btn btn-ghost" id="bkPrintBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        طباعة / حفظ PDF
+      </button>
+      <button type="button" class="btn btn-ghost" id="bkAgainBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        حجز موعد آخر
+      </button>
     </div>
   </div>
 </div>
@@ -2168,6 +2298,6 @@ window.orasAboutSlider = (function () {
 </script>
 <script src="oras-analytics.js?v=1" defer></script>
 <script src="oras-sanity.js?v=12" defer></script>
-<script src="oras-booking.js?v=4" defer></script>
+<script src="oras-booking.js?v=5" defer></script>
 </body>
 </html>
