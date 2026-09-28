@@ -38,6 +38,33 @@ npm run dev
 
 ---
 
+## 💻 على GitHub Codespaces
+
+نفس الأوامر تعمل داخل الـ Codespace مباشرة — والفرق الوحيد هو طريقة فتح اللوحة:
+
+```bash
+cd studio
+npm install          # أول مرة فقط
+npx sanity login     # يفتح رابطاً — أكمل الدخول في متصفحك
+npm run dev          # تشغيل اللوحة
+```
+
+1. عند تشغيل `npm run dev` سيكتشف Codespaces المنفذ **3333** تلقائياً —
+   اضغط على الرابط الذي يظهر في شريط المنافذ (Notification) أو من تبويب
+   **PORTS** ثم افتح اللوحة بزر **Open in Browser**.
+2. ستفتح اللوحة على نطاق مثل `https://xxxxx-3333.app.github.dev` —
+   هذا طبيعي (وليس `localhost:3333`)؛ إعداد `sanity.cli.js` مضبوط مسبقاً
+   لقبول النطاقات الخارجية (`allowedHosts: true`).
+3. **إن طلبت اللوحة إضافة النطاق إلى CORS** اضغط موافقة — أو أضفه يدوياً من
+   <https://sanity.io/manage> → **API → CORS origins → Add origin**:
+   `https://xxxxx-3333.app.github.dev` (بدون تفعيل Allow credentials).
+
+> **تحديث اللوحة العامة** (`https://الاسم.sanity.studio`) من داخل الـ Codespace
+> يعمل بنفس الطريقة: `npm run deploy` — النشر يتم من الـ Codespace دون الحاجة
+> لجهاز محلي.
+
+---
+
 ## ⚠️ خطوتان مهمتان قبل أن يعمل الموقع
 
 اللوحة ستعمل فوراً، لكن **الموقع لن يقرأ منها** حتى تضبط هذين الإعدادين
