@@ -159,6 +159,12 @@ section{scroll-margin-top:92px; padding:96px 0; position:relative}
 .nav-links{display:flex; align-items:center; gap:2px}
 .nav-links a{padding:9px 12px;border-radius:999px;font-weight:700;font-size:.92rem;color:var(--ink-soft);transition:.25s;white-space:nowrap}
 .nav-links a:hover{color:var(--gold-deep);background:rgba(255,255,255,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1px rgba(201,162,39,.2)}
+/* زر «أوراس التعليمية» — يبدو كزر مستقل داخل قائمة التنقّل */
+.nav-links a.nav-edu{
+  border:1.5px solid rgba(201,162,39,.45);color:var(--gold-deep);
+  background:rgba(201,162,39,.1);font-weight:800;
+}
+.nav-links a.nav-edu:hover{background:var(--grad-gold);color:#4A3A0A;border-color:transparent}
 .nav-cta{display:inline-flex}
 .menu-btn{display:none;background:rgba(255,255,255,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1.5px solid rgba(201,162,39,.25);border-radius:12px;padding:8px 10px;cursor:pointer;color:var(--gold-deep)}
 .btn{
@@ -1054,6 +1060,7 @@ section + section::after{
   .gal-item figcaption{padding:20px 8px 7px;font-size:.72rem}
 }
 </style>
+<script src="oras-transition.js?v=1"></script>
 </head>
 <body>
 
@@ -1076,6 +1083,7 @@ section + section::after{
         <a href="#doctors">أطباؤنا</a>
         <a href="#partners" data-nav="partners">شراكاتنا</a>
         <a href="#location">الموقع</a>
+        <a href="education.html" class="nav-edu" data-pt>أوراس التعليمية</a>
       </nav>
       <a href="#booking" class="btn btn-gold btn-sm nav-cta">احجز موعدك</a>
       <button class="menu-btn" id="menuBtn" aria-label="القائمة">
@@ -1104,6 +1112,10 @@ section + section::after{
         احجز موعدك الآن
       </a>
       <a href="#services" class="btn btn-light">استكشف خدماتنا</a>
+      <a href="education.html" class="btn btn-light" data-pt>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M6 10.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-5.5"/><path d="M21 8.5V14"/></svg>
+        أوراس التعليمية
+      </a>
     </div>
     <ul class="trust">
       <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3D477" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> تعقيم بمعايير عالمية</li>
@@ -1526,6 +1538,7 @@ section + section::after{
           <li><a href="#reviews">آراء المرضى</a></li>
           <li><a href="#doctors">أطباؤنا</a></li>
           <li><a href="#partners" data-nav="partners">شراكاتنا</a></li>
+          <li><a href="education.html" data-pt>أوراس التعليمية</a></li>
         </ul>
       </div>
       <div>

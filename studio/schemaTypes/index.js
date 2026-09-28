@@ -6,6 +6,7 @@ import galleryItem from './galleryItem'
 import doctor from './doctor'
 import review from './review'
 import partner from './partner'
+import educationFile from './educationFile'
 
 export const schemaTypes = [
   siteSettings,
@@ -16,4 +17,5 @@ export const schemaTypes = [
   doctor,
   review,
   partner,
+  educationFile,
 ]

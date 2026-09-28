@@ -11,4 +11,14 @@
       <image:title>عيادة أوراس لطب الأسنان — شارع الستين، الخرطوم</image:title>
     </image:image>
   </url>
+  <url>
+    <loc>https://orasdentalclinic.com/education.html</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://orasdentalclinic.com/images/bg/doctors.jpg</image:loc>
+      <image:title>أوراس التعليمية — عيادة أوراس لطب الأسنان</image:title>
+    </image:image>
+  </url>
 </urlset>
