@@ -1,13 +1,13 @@
 /*!
- * أوراس التعليمية — عرض الملفات من لوحة التحكم (Sanity)
- * ──────────────────────────────────────────────────────
- * يقرأ شبكة الملفات في الصفحة (العنصر #eduFiles ويحمل data-audience):
- *   data-audience="patients" → ملفات «دليل مرضى أوراس»
- *   data-audience="dentists" → ملفات «دليل أطباء الأسنان»
+ * أوراس التعليمية — عرض الملفات التعليمية
+ * ─────────────────────────────────────────
+ * يقرأ شبكات الملفات في الصفحة (عناصر تحمل class="file-grid" و data-audience):
+ *   data-audience="patients" → محتوى «قسم مرضى أوراس»
+ *   data-audience="dentists" → محتوى «قسم أطباء الأسنان»
  *
  * يجلب الملفات المنشورة (educationFile) من مشروع Sanity المضبوط في
- * window.ORAS_SANITY_CONFIG ويعرضها كبطاقات: صورة/أيقونة + عنوان + وصف
- * + تصنيف + حجم الملف + زر «فتح الملف».
+ * window.ORAS_SANITY_CONFIG ويوزّعها على الشبكات حسب القسم، كبطاقات:
+ * صورة/أيقونة + عنوان + وصف + تصنيف + حجم الملف + زر «فتح الملف».
  *
  * • بدون محتوى منشور تبقى رسالة «قريباً» ظاهرة (الحالة الافتراضية).
  * • عند فشل الاتصال يبقى المحتوى الافتراضي ظاهراً — الصفحة لا تنكسر أبداً.
@@ -26,9 +26,8 @@
   );
   if (!CONFIG.projectId) return;
 
-  var grid = document.getElementById('eduFiles');
-  if (!grid) return;
-  var audience = grid.getAttribute('data-audience') || 'patients';
+  var grids = Array.prototype.slice.call(document.querySelectorAll('.file-grid[data-audience]'));
+  if (!grids.length) return;
 
   /* ---------- أدوات ---------- */
   function el(tag, cls, text) {
@@ -82,12 +81,10 @@
     );
   }
 
-  /* ---------- الاستعلام ---------- */
+  /* ---------- الاستعلام (كل الأقسام في طلب واحد) ---------- */
   var QUERY =
-    '*[_type == "educationFile" && audience == "' +
-    String(audience).replace(/[^a-z]/g, '') +
-    '" && isActive != false] | order(order asc, publishedAt desc) {' +
-    '_id, title, description, category, linkUrl, publishedAt,' +
+    '*[_type == "educationFile" && isActive != false] | order(order asc, publishedAt desc) {' +
+    '_id, title, description, category, audience, linkUrl, publishedAt,' +
     '"fileUrl": file.asset->url, "fileSize": file.asset->size,' +
     '"fileName": file.asset->originalFilename, "ext": file.asset->extension,' +
     '"mime": file.asset->mimeType, "thumbUrl": thumbnail.asset->url' +
@@ -166,12 +163,24 @@
     return card;
   }
 
-  function render(items) {
-    var empty = document.getElementById('eduEmpty');
+  function renderGrid(grid, items) {
     if (!items || !items.length) return; /* تبقى رسالة «قريباً» */
+    var empty = grid.querySelector('.edu-empty');
     if (empty && empty.parentNode) empty.parentNode.removeChild(empty);
     items.forEach(function (it) {
       grid.appendChild(renderCard(it));
+    });
+  }
+
+  function render(all) {
+    grids.forEach(function (grid) {
+      var aud = grid.getAttribute('data-audience');
+      renderGrid(
+        grid,
+        (all || []).filter(function (it) {
+          return (it.audience || 'patients') === aud;
+        })
+      );
     });
   }
 

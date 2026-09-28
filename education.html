@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>أوراس التعليمية | عيادة أوراس لطب الأسنان</title>
-<meta name="description" content="أوراس التعليمية — منصة عيادة أوراس لطب الأسنان التعليمية: دليل مرضى أوراس ودليل أطباء الأسنان — ملفات وأدلة ومصادر تُحدَّث باستمرار.">
+<meta name="description" content="أوراس التعليمية — منصة عيادة أوراس لطب الأسنان التعليمية: قسم لمرضى أوراس وقسم لأطباء الأسنان — ملفات وأدلة ومصادر متجددة.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://orasdentalclinic.com/education.html">
 <meta name="theme-color" content="#C9A227">
@@ -14,14 +14,14 @@
 <meta property="og:locale" content="ar_AR">
 <meta property="og:site_name" content="عيادة أوراس لطب الأسنان">
 <meta property="og:title" content="أوراس التعليمية | عيادة أوراس لطب الأسنان">
-<meta property="og:description" content="دليل مرضى أوراس ودليل أطباء الأسنان — ملفات وأدلة ومصادر تُحدَّث باستمرار من أوراس التعليمية.">
+<meta property="og:description" content="قسم لمرضى أوراس وقسم لأطباء الأسنان — ملفات وأدلة ومصادر تُحدَّث باستمرار.">
 <meta property="og:url" content="https://orasdentalclinic.com/education.html">
 <meta property="og:image" content="https://orasdentalclinic.com/images/bg/doctors.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="أوراس التعليمية | عيادة أوراس لطب الأسنان">
-<meta name="twitter:description" content="دليل مرضى أوراس ودليل أطباء الأسنان — ملفات وأدلة ومصادر تُحدَّث باستمرار.">
+<meta name="twitter:description" content="قسم لمرضى أوراس وقسم لأطباء الأسنان — ملفات وأدلة ومصادر تُحدَّث باستمرار.">
 <meta name="twitter:image" content="https://orasdentalclinic.com/images/bg/doctors.jpg">
 
 <!-- ===== بيانات منظمة للصفحة التعليمية ===== -->
@@ -32,7 +32,7 @@
   "name": "أوراس التعليمية",
   "alternateName": "Oras Education",
   "url": "https://orasdentalclinic.com/education.html",
-  "description": "بوابة عيادة أوراس التعليمية: دليل مرضى أوراس ودليل أطباء الأسنان — ملفات وأدلة ومصادر متجددة.",
+  "description": "منصة عيادة أوراس التعليمية: قسم لمرضى أوراس وقسم لأطباء الأسنان — ملفات وأدلة ومصادر متجددة.",
   "isPartOf": {
     "@type": "WebSite",
     "name": "عيادة أوراس لطب الأسنان",
@@ -57,7 +57,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="education.css?v=1">
+<link rel="stylesheet" href="education.css?v=2">
 <script src="oras-transition.js?v=1"></script>
 </head>
 <body>
@@ -72,8 +72,8 @@
       </a>
       <nav class="nav-links" id="navLinks">
         <a href="index.html" data-pt>الرئيسية</a>
-        <a href="education-patients.html" data-pt>دليل المرضى</a>
-        <a href="education-dentists.html" data-pt>دليل الأطباء</a>
+        <a href="#content" data-show="patients">قسم المرضى</a>
+        <a href="#content" data-show="dentists">قسم الأطباء</a>
         <a href="index.html#booking" data-pt>حجز موعد</a>
         <a href="education.html" class="nav-edu" aria-current="page">أوراس التعليمية</a>
       </nav>
@@ -86,18 +86,18 @@
 </header>
 
 <main>
-<!-- ===================== HERO: البوابة ===================== -->
+<!-- ===================== HERO: الزران ===================== -->
 <section class="edu-hero" id="top">
   <div class="pattern" aria-hidden="true"></div>
   <div class="edu-in">
     <span class="kicker reveal">منصة أوراس التعليمية</span>
     <h1 class="reveal">معرفة تُطمئنك… وتدريب <span class="grad-text">يرفع المعيار</span></h1>
-    <p class="sub reveal">اختر المسار المناسب لك للدخول إلى الدليل المخصص — ملفات وأدلة ومصادر تُحدَّث باستمرار من فريق أوراس.</p>
+    <p class="sub reveal">اختر قسمك لعرض المحتوى — ملفات وأدلة ومصادر يجمعها فريق أوراس لمساعدتك على فهم أسنانك والاعتناء بها.</p>
 
     <div class="path-cards">
-      <a class="path reveal" href="education-patients.html" data-pt>
+      <a href="#content" class="path reveal" data-show="patients">
         <span class="pic"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#4A3A0A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c1.4-3.4 4.2-5 7.5-5s6.1 1.6 7.5 5"/></svg></span>
-        <h2>دليل مرضى أوراس</h2>
+        <h2>قسم مرضى أوراس</h2>
         <p>ملفات وأدلة مبسّطة تساعدك على العناية بابتسامتك — قبل الزيارة وبعدها.</p>
         <ul class="path-list">
           <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> إرشادات العناية اليومية وما بعد العلاج</li>
@@ -105,14 +105,14 @@
           <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> نصائح أسنان الأطفال والعائلة</li>
         </ul>
         <span class="btn btn-gold">
-          ادخل دليل المرضى
+          اعرض محتوى المرضى
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
         </span>
       </a>
 
-      <a class="path reveal" href="education-dentists.html" data-pt>
+      <a href="#content" class="path reveal" data-show="dentists">
         <span class="pic"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#4A3A0A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M6 10.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-5.5"/><path d="M21 8.5V14"/></svg></span>
-        <h2>دليل أطباء الأسنان</h2>
+        <h2>قسم أطباء الأسنان</h2>
         <p>برامج تدريب وملفات مهارية تدعم ممارستك السريرية — من فريق أوراس الاستشاري.</p>
         <ul class="path-list">
           <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> برامج التدريب السريري وورش العمل</li>
@@ -120,18 +120,197 @@
           <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> فرص التعاون والمشاركة السريرية</li>
         </ul>
         <span class="btn btn-dark">
-          ادخل دليل الأطباء
+          اعرض محتوى الأطباء
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
         </span>
       </a>
     </div>
 
     <div class="quick-strip">
-      <div class="quick reveal"><b>٢</b><span>مسارات تعليمية: للمرضى وللأطباء</span></div>
-      <div class="quick reveal"><b>📚</b><span>ملفات ومصادر تُحدَّث من لوحة التحكم</span></div>
+      <div class="quick reveal"><b>٢</b><span>قسمان: للمرضى وللأطباء</span></div>
+      <div class="quick reveal"><b>📚</b><span>ملفات ومصادر تُحدَّث باستمرار</span></div>
       <div class="quick reveal"><b>🦷</b><span>محتوى من فريق أوراس الاستشاري</span></div>
       <div class="quick reveal"><b>∞</b><span>معرفة متجددة مع أوراس التعليمية</span></div>
     </div>
+  </div>
+</section>
+
+<!-- ===================== CONTENT: يظهر بالضغط على الزر ===================== -->
+<section id="content" class="edu-content">
+  <div class="sec-bg" style="background-image:url('images/bg/services.jpg')"></div>
+  <div class="container">
+
+    <!-- دليل الاختيار قبل الضغط -->
+    <div class="pick-hint reveal" id="pickHint">
+      <span class="big">👆</span>
+      <b>اختر قسمك من الأزرار أعلاه</b>
+      <p>اضغط «قسم مرضى أوراس» أو «قسم أطباء الأسنان» لعرض محتوى القسم.</p>
+    </div>
+
+    <!-- ════════ قسم مرضى أوراس ════════ -->
+    <div class="edu-panel" id="panel-patients" data-panel="patients" hidden>
+      <div class="sec-head">
+        <span class="kicker">قسم مرضى أوراس</span>
+        <h2>ملفات وأدلة <span class="grad-text">للعناية بابتسامتك</span></h2>
+        <p>كل ما تحتاجه للاعتناء بأسنانك في مكان واحد: ملفات يمكنك تحميلها ومراجعتها، وإرشادات مكتوبة بلغة بسيطة.</p>
+      </div>
+
+      <!-- شبكة ملفات المرضى -->
+      <div class="file-grid" data-audience="patients">
+        <div class="edu-empty">
+          <span class="big">📚</span>
+          <b>ستتوفر الملفات والأدلة هنا قريباً بإذن الله</b>
+          <p>يتم حالياً إعداد مجموعة من ملفات العناية بالأسنان — وستظهر هنا فور جهوزها.</p>
+        </div>
+      </div>
+
+      <div class="sec-head sub-head">
+        <span class="kicker">إرشادات سريعة</span>
+        <h2>ابتسامتك تبدأ <span class="grad-text">من معرفتك</span></h2>
+        <p>إجابات مختصرة على أكثر الأسئلة التي تُطرح في العيادة — لتعرف كيف تعتني بأسنانك قبل الزيارة وبعدها.</p>
+      </div>
+
+      <div class="topic-grid">
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-2 0-2.6 1.2-4.3 1.2-2.3 0-3.3 1.7-3.3 4 0 4.1 2 6.2 2.8 10.4.4 2 2.9 2 3.3-.1.3-1.4.6-2.9 1.5-2.9s1.2 1.5 1.5 2.9c.4 2.1 2.9 2.1 3.3.1.8-4.2 2.8-6.3 2.8-10.4 0-2.3-1-4-3.3-4C14.6 4.2 14 3 12 3z"/><path d="M5 8.5c1.5-1 2.5-1 4-1M15 7.5c1.5 0 2.5 0 4 1" opacity=".6"/></svg></span>
+          <h3>العناية اليومية بالأسنان</h3>
+          <p>العادات البسيطة التي تحميك من التسوس وأمراض اللثة مدى الحياة.</p>
+          <ul class="tick">
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> افرش أسنانك مرتين يومياً بفرشاة ناعمة ومعجون بفلورايد</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> استخدم خيط الأسنان مرة واحدة يومياً على الأقل</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> غيّر رأس الفرشاة كل ٣ أشهر أو عند تآكل شعيراتها</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-2 0-2.6 1.2-4.3 1.2-2.3 0-3.3 1.7-3.3 4 0 4.1 2 6.2 2.8 10.4.4 2 2.9 2 3.3-.1.3-1.4.6-2.9 1.5-2.9s1.2 1.5 1.5 2.9c.4 2.1 2.9 2.1 3.3.1.8-4.2 2.8-6.3 2.8-10.4 0-2.3-1-4-3.3-4C14.6 4.2 14 3 12 3z"/><path d="M10.6 7.2c-1 .9-1.1 2.5-.2 3.6M13.4 7.2c1 .9 1.1 2.5.2 3.6"/></svg></span>
+          <h3>بعد جلسة التبييض</h3>
+          <p>خطوات بسيطة تحافظ على النتيجة وتقلل الحساسية المؤقتة.</p>
+          <ul class="tick">
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> تجنب المشروبات والأطعمة الملونة خلال ٤٨ ساعة الأولى</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> الحساسية الخفيفة طبيعية وتزول خلال يومين</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> استخدم معجون الحساسية إن استمر الإزعاج</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M12 2c-1.5 1.5-1.5 3.5 0 5 1.5-1.5 1.5-3.5 0-5z" opacity=".9"/><path d="M9 9.5c-1.2 1.2-1.2 3 0 4.2M15 9.5c1.2 1.2 1.2 3 0 4.2M10.5 13v6M13.5 13v6M10.5 16h3"/></svg></span>
+          <h3>بعد زراعة الأسنان</h3>
+          <p>عناية لطيفة ودقيقة تضمن التئام الزرعة ونجاحها على المدى الطويل.</p>
+          <ul class="tick">
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> نظّف المنطقة بلطف حول الزرعة دون ضغط مباشر</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> تجنب المضغ على الجانب المُعالَج في اليوم الأول</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> راجعنا فوراً عند أي تورم أو ألم غير معتاد</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-2 0-2.6 1.2-4.3 1.2-2.3 0-3.3 1.7-3.3 4 0 4.1 2 6.2 2.8 10.4.4 2 2.9 2 3.3-.1.3-1.4.6-2.9 1.5-2.9s1.2 1.5 1.5 2.9c.4 2.1 2.9 2.1 3.3.1.8-4.2 2.8-6.3 2.8-10.4 0-2.3-1-4-3.3-4C14.6 4.2 14 3 12 3z"/><path d="M4.5 9.5h15M8 8v3M12 8v3M16 8v3"/></svg></span>
+          <h3>أثناء تقويم الأسنان</h3>
+          <p>كيف تحافظ على أسنانك وقوس التقويم نظيفين وسليمين.</p>
+          <ul class="tick">
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> تجنب الأطعمة القاسية واللزجة التي قد تكسر الأقواس</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> استخدم الفرشاة الخاصة للتقويم بعد كل وجبة</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> الشمع الوقائي يريحك عند احتكاك الأسلاك بالخدين</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7S6.5 5.5 6.5 10.2c0 2.9 2.2 4.6 2.2 4.6l1.1 4.7c.3 1.4 2.1 1.4 2.4 0l1.1-4.7s2.2-1.7 2.2-4.6C15.5 5.5 12 2.7 12 2.7z"/><path d="M12 2.7v9.8"/><path d="M12 8.2l1.8-1.5M12 10.4l-2-1.6"/></svg></span>
+          <h3>أسنان الأطفال</h3>
+          <p>عادات صحية مبكرة تحمي أسنان طفلك وتغنيه عن العلاجات المبكرة.</p>
+          <ul class="tick">
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> أول زيارة لطبيب الأسنان في عيد الميلاد الأول</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> قلّل السكريات بين الوجبات وخاصة قبل النوم</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> ختم الفلورايد يحمي الأضراس الدائمة الجديدة</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></span>
+          <h3>متى تراجع الطبيب فوراً؟</h3>
+          <p>علامات التحذير التي لا ينبغي تأجيل زيارة العيادة لها.</p>
+          <ul class="tick">
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> ألم أسنان متواصل أو يوقظك من النوم</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> تورم في الوجه أو اللثة مصحوب بحمى</li>
+            <li><span class="chk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span> نزيف لثوي لا يتوقف أو كسر في السن</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="join-band">
+        <div>
+          <h3>هل أنت طبيب أسنان؟</h3>
+          <p>انتقل إلى قسم الأطباء للبرامج التدريبية والملفات المهارية.</p>
+        </div>
+        <div class="join-actions">
+          <button type="button" class="btn btn-dark" data-show="dentists">
+            قسم أطباء الأسنان
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ قسم أطباء الأسنان ════════ -->
+    <div class="edu-panel" id="panel-dentists" data-panel="dentists" hidden>
+      <div class="sec-head">
+        <span class="kicker">قسم أطباء الأسنان</span>
+        <h2>مصادر مهارية <span class="grad-text">جاهزة للاستخدام</span></h2>
+        <p>ملفات تدريبية وعلمية من فريق أوراس — تُحدَّث باستمرار لمواكبة أحدث الأساليب السريرية.</p>
+      </div>
+
+      <!-- شبكة ملفات الأطباء -->
+      <div class="file-grid" data-audience="dentists">
+        <div class="edu-empty">
+          <span class="big">📚</span>
+          <b>ستتوفر الملفات والبرامج هنا قريباً بإذن الله</b>
+          <p>يتم حالياً إعداد مجموعة من الملفات التدريبية — وستظهر هنا فور جهوزها.</p>
+        </div>
+      </div>
+
+      <div class="sec-head sub-head">
+        <span class="kicker">البرامج التدريبية</span>
+        <h2>تدريب عملي <span class="grad-text">يمسّ ممارستك</span></h2>
+        <p>برامج مصممة لأطباء الأسنان والطلاب — معرفة تطبيقية مباشرة من فريق أوراس الاستشاري، في بيئة سريرية حقيقية.</p>
+      </div>
+
+      <div class="topic-grid">
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M6 10.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-5.5"/><path d="M21 8.5V14"/></svg></span>
+          <h3>التدريب السريري الميداني</h3>
+          <p>مرافقة فريق الاستشاريين داخل العيادة على حالات حقيقية، مع متابعة خطوة بخطوة للتخطيط العلاجي واتخاذ القرار.</p>
+        </div>
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 1 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg></span>
+          <h3>ورش العمل المهارية</h3>
+          <p>تدريب يدوي على التصميم الرقمي CAD/CAM، الطباعة ثلاثية الأبعاد، والتصوير الفوتوغرافي السريري — بمقاعد محدودة لضمان الجودة.</p>
+        </div>
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h6"/><circle cx="16.5" cy="14.5" r="1.6"/></svg></span>
+          <h3>التحديثات العلمية</h3>
+          <p>لقاءات دورية تناقش أحدث بروتوكولات العلاج والمواد والتقنيات، مع مراجعات لحالات سريرية موثقة.</p>
+        </div>
+        <div class="topic">
+          <span class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A8841C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M3 19c1.2-2.8 3.4-4.2 6-4.2s4.8 1.4 6 4.2M15.5 14.2c2 .4 3.7 1.7 4.7 3.8"/></svg></span>
+          <h3>فرص التعاون والمشاركة</h3>
+          <p>مشاركة الحالات، الإحالة المتبادلة، وبرامج التعليم المستمر — لأن أفضل النتائج تُصنع بالعمل الجماعي.</p>
+        </div>
+      </div>
+
+      <div class="join-band">
+        <div>
+          <h3>هل ترغب بالانضمام إلى البرنامج التدريبي؟</h3>
+          <p>سجّل اهتمامك الآن، وسيتواصل معك فريقنا لتفاصيل الدفعة القادمة والمتطلبات.</p>
+        </div>
+        <div class="join-actions">
+          <a class="btn btn-dark" href="https://wa.me/249912345678?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D8%A8%D8%A7%D9%84%D8%A7%D8%B4%D8%AA%D8%B1%D8%A7%D9%83%20%D9%81%D9%8A%20%D8%A7%D9%84%D8%A8%D8%B1%D9%86%D8%A7%D9%85%D8%AC%20%D8%A7%D9%84%D8%AA%D8%AF%D8%B1%D9%8A%D8%A8%D9%8A%20%D9%81%D9%8A%20%D8%A3%D9%88%D8%B1%D8%A7%D8%B3%20%D8%A7%D9%84%D8%AA%D8%B9%D9%84%D9%8A%D9%85%D9%8A%D8%A9." target="_blank" rel="noopener">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5s.8 1.9.8 2c.1.2.1.3 0 .5l-.4.6c-.2.2-.3.3-.1.6.2.3.8 1.2 1.6 2 1.1.9 2 1.2 2.3 1.3.3.1.4.1.6-.1l.9-1c.2-.3.4-.2.7-.1l2 .9c.3.2.5.2.6.4 0 .1 0 .7-.2 1.3z"/></svg>
+            سجّل اهتمامك عبر واتساب
+          </a>
+          <button type="button" class="btn btn-ghost" data-show="patients">
+            قسم مرضى أوراس
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 </main>
@@ -155,8 +334,8 @@
       <div>
         <h4>الصفحة التعليمية</h4>
         <ul>
-          <li><a href="education-patients.html" data-pt>دليل مرضى أوراس</a></li>
-          <li><a href="education-dentists.html" data-pt>دليل أطباء الأسنان</a></li>
+          <li><a href="#content" data-show="patients">قسم مرضى أوراس</a></li>
+          <li><a href="#content" data-show="dentists">قسم أطباء الأسنان</a></li>
           <li><a href="index.html" data-pt>العودة للرئيسية</a></li>
         </ul>
       </div>
@@ -184,7 +363,7 @@
 </footer>
 
 <script>
-/* قائمة الجوال + ظهور العناصر عند التمرير + السنة */
+/* قائمة الجوال + ظهور العناصر + إظهار الأقسام بالضغط على الأزرار */
 (function () {
   'use strict';
   var header = document.getElementById('siteHeader');
@@ -199,6 +378,43 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
+  /* ═══ إظهار قسم بالضغط على زره — المحتوى مخفي حتى الضغط ═══ */
+  var panels = {
+    patients: document.getElementById('panel-patients'),
+    dentists: document.getElementById('panel-dentists')
+  };
+  var pickHint = document.getElementById('pickHint');
+  var content = document.getElementById('content');
+
+  function showPanel(name) {
+    var target = panels[name];
+    if (!target) return;
+    Object.keys(panels).forEach(function (k) {
+      if (panels[k]) panels[k].hidden = (k !== name);
+    });
+    if (pickHint) pickHint.hidden = true;
+    /* إبراز الزر المفعّل */
+    document.querySelectorAll('[data-show]').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-show') === name);
+    });
+    /* إظهار محتوى القسم فوراً (بدون انتظار التمرير) */
+    target.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+    /* التمرير إلى المحتوى */
+    if (content) {
+      setTimeout(function () {
+        content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 60);
+    }
+  }
+
+  document.querySelectorAll('[data-show]').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      showPanel(btn.getAttribute('data-show'));
+    });
+  });
+
+  /* الظهور عند التمرير (للعناصر الظاهرة فقط) */
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
@@ -216,13 +432,13 @@
 </script>
 <script>
   window.ORAS_SANITY_CONFIG = { projectId: 'upxb9w10', dataset: 'production' };
-  /* إحصاءات الزوار (GoatCounter) — نفس إعدادات الصفحة الرئيسية */
   window.ORAS_GOATCOUNTER = {
     code: 'oras-dental',
     showVisitorCounter: false,
     trackLocal: false
   };
 </script>
+<script src="oras-edu.js?v=2" defer></script>
 <script src="oras-analytics.js?v=1" defer></script>
 </body>
 </html>

@@ -110,10 +110,11 @@ section{scroll-margin-top:92px; padding:96px 0; position:relative; overflow:hidd
 .edu-hero p.sub{font-size:1.12rem;color:#4E452D;font-weight:600;max-width:44rem;margin:0 auto 34px}
 .edu-ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:26px}
 
-/* ── بطاقتا المسار (البوابة): زرّان كبيران للقسمين ── */
+/* ── بطاقتا الزرّين (البوابة): زرّان كبيران يُظهران المحتوى بالضغط ── */
 .path-cards{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:38px;text-align:right}
 .path{
   position:relative;display:flex;flex-direction:column;gap:14px;
+  font-family:inherit;color:inherit;cursor:pointer;width:100%;text-align:right;
   background-color:rgba(255,255,255,.55);background-image:var(--glass-bg);
   border:1px solid var(--glass-border);border-radius:28px;padding:38px 32px;
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
@@ -122,6 +123,8 @@ section{scroll-margin-top:92px; padding:96px 0; position:relative; overflow:hidd
 .path::before{content:'';position:absolute;top:0;right:0;left:0;height:5px;background:var(--grad-gold);opacity:0;transition:.32s}
 .path:hover{transform:translateY(-8px);box-shadow:var(--glass-inset),0 30px 60px rgba(168,132,28,.24);border-color:rgba(255,255,255,.95)}
 .path:hover::before{opacity:1}
+.path.is-active{border-color:rgba(201,162,39,.85);box-shadow:var(--glass-inset),0 24px 52px rgba(201,162,39,.32)}
+.path.is-active::before{opacity:1}
 .path .pic{
   width:78px;height:78px;border-radius:24px;background:var(--grad-gold);
   display:grid;place-items:center;box-shadow:0 12px 26px rgba(201,162,39,.4);
@@ -158,6 +161,25 @@ section:has(> .sec-bg) > .container > .sec-head{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 14px 36px rgba(44,38,23,.12);
 }
 .sec-head h2 .grad-text{filter:drop-shadow(0 1px 1px rgba(96,74,14,.45))}
+/* رؤوس الأقسام داخل الألواح (تتداخل أكثر من مستوى داخل الحاوية) */
+section:has(> .sec-bg) .container .sec-head{
+  position:relative;z-index:1;max-width:52rem;padding:26px 30px 28px;border-radius:26px;
+  background-color:rgba(255,253,246,.62);
+  background-image:linear-gradient(170deg,rgba(255,255,255,.72) 0%,rgba(255,253,246,.5) 100%);
+  border:1px solid rgba(255,255,255,.7);
+  backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 14px 36px rgba(44,38,23,.12);
+}
+.sec-head.sub-head{margin-top:72px}
+
+/* ===== ألواح الأقسام: تظهر فقط بالضغط على الزر ===== */
+.edu-panel{animation:panelIn .55s ease both}
+@keyframes panelIn{
+  from{opacity:0;transform:translateY(26px)}
+  to{opacity:1;transform:none}
+}
+@media (prefers-reduced-motion:reduce){.edu-panel{animation:none}}
+.path-btns .is-active,.nav-links a.is-active{color:var(--gold-deep);background:rgba(201,162,39,.12);box-shadow:inset 0 0 0 1px rgba(201,162,39,.25)}
 
 /* ===== خلفية الأقسام ===== */
 .sec-bg{
@@ -244,16 +266,16 @@ section + section::after{
   transition:.25s;
 }
 .file-card:hover .file-open{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 12px 24px rgba(201,162,39,.42)}
-/* حالة «لا توجد ملفات بعد» */
-.edu-empty{
+/* حالة «لا توجد ملفات بعد» + دليل الاختيار */
+.edu-empty,.pick-hint{
   grid-column:1/-1;text-align:center;padding:46px 26px;border-radius:var(--r);
   background-color:rgba(255,255,255,.45);background-image:var(--glass-bg);
   border:1.5px dashed rgba(201,162,39,.45);
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
 }
-.edu-empty .big{font-size:2.6rem;display:block;margin-bottom:10px}
-.edu-empty b{display:block;font-size:1.15rem;font-weight:900;color:var(--gold-ink);margin-bottom:6px}
-.edu-empty p{color:var(--ink-soft);font-size:.95rem;font-weight:600}
+.edu-empty .big,.pick-hint .big{font-size:2.6rem;display:block;margin-bottom:10px}
+.edu-empty b,.pick-hint b{display:block;font-size:1.15rem;font-weight:900;color:var(--gold-ink);margin-bottom:6px}
+.edu-empty p,.pick-hint p{color:var(--ink-soft);font-size:.95rem;font-weight:600}
 
 /* ===== شريط الانضمام/التنقل السفلي ===== */
 .join-band{
