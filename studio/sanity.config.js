@@ -37,6 +37,7 @@ export default defineConfig({
             S.documentTypeListItem('caseStudy').title('✨ الحالات (قبل / بعد)'),
             S.documentTypeListItem('galleryItem').title('🖼️ نشاط العيادة'),
             S.documentTypeListItem('doctor').title('👩‍⚕️ الأطباء'),
+            S.documentTypeListItem('educationFile').title('📚 أوراس التعليمية — الملفات'),
             S.divider(),
             S.documentTypeListItem('review').title('⭐ آراء المرضى (التقييمات)'),
             S.documentTypeListItem('partner').title('🤝 الشراكات'),
