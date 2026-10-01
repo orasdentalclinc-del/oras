@@ -19,8 +19,8 @@ const bookingJs = fs.readFileSync('oras-booking.js', 'utf8');
 
 /* ═══════════ 1) فحوصات الربط في index.html ═══════════ */
 
-assert.ok(/<script src="oras-booking\.js\?v=5" defer><\/script>/.test(html),
-  'index.html يجب أن يحمّل oras-booking.js?v=5 (رفع الإصدار بعد إضافة شاشة التأكيد)');
+assert.ok(/<script src="oras-booking\.js\?v=6" defer><\/script>/.test(html),
+  'index.html يجب أن يحمّل oras-booking.js?v=6 (تحديث قائمة ساعات الحجز)');
 
 for (const id of ['bkConfirm', 'bkConfirmClose', 'bkConfirmTitle', 'bkRef', 'bkDetails',
   'bkGcalBtn', 'bkTicketWa', 'bkPrintBtn', 'bkAgainBtn', 'bkMineWrap', 'bkMyBookingBtn']) {
@@ -32,6 +32,9 @@ assert.ok(/\.bk-confirm\{/.test(html) && /\.bk-ticket\{/.test(html) && /\.bk-row
 
 assert.ok(/@media print\{\s*body\.bk-printing \*/.test(html.replace(/\n/g, '')) || html.includes('body.bk-printing *'),
   'يجب وجود قواعد الطباعة — تُطبع تذكرة الحجز وحدها');
+
+assert.ok(!html.includes('name="hour" value="08:00"'),
+  'خيار 8:00 صباحاً يجب ألا يظهر في ساعات الحجز');
 
 assert.ok(bookingJs.includes("'https://calendar.google.com/calendar/render?'"),
   'oras-booking.js يجب أن يبني رابط تقويم Google');
@@ -126,6 +129,8 @@ vm.runInContext(bookingJs, windowMock, { filename: 'oras-booking.js' });
 const BK = windowMock.__orasBooking;
 assert.ok(BK && typeof BK.buildTicketData === 'function',
   'oras-booking.js يجب أن يكشف دوال شاشة التأكيد عبر window.__orasBooking');
+assert.strictEqual(BK.HOURS[0], '09:00', 'أول ساعة حجز يجب أن تكون 9:00 صباحاً');
+assert.ok(!BK.HOURS.includes('08:00'), 'ساعة 8:00 صباحاً يجب ألا تكون متاحة للحجز');
 
 /* ═══════════ 3) أدوات تواريخ للاختبار ═══════════ */
 
