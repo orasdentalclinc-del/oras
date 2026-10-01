@@ -1,7 +1,7 @@
 /**
  * نظام الحجز الآلي بالساعة — عيادة أوراس لطب الأسنان
  * ─────────────────────────────────────────────────────
- * • الحجز بالساعة: 12 ساعة متواصلة من 8:00 صباحاً حتى 8:00 مساءً.
+ * • مواعيد الحجز بالساعة: 11 فترة من 9:00 صباحاً حتى 8:00 مساءً.
  * • رسالة «متاح / غير متاح» تظهر فقط بعد الضغط على زر «احجز الآن».
  * • زر الحجز الآلي منفصل تماماً عن زر واتساب (مسارين مستقلين).
  */
@@ -23,8 +23,8 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
     return;
   }
 
-  // ─── إعدادات الدوام: 12 ساعة متواصلة من 8 صباحاً حتى 8 مساءً ───
-  var OPEN_HOUR = 8;    // أول ساعة حجز تبدأ 08:00
+  // ─── إعدادات مواعيد الحجز: 11 فترة من 9 صباحاً حتى 8 مساءً ───
+  var OPEN_HOUR = 9;    // أول ساعة حجز تبدأ 09:00
   var CLOSE_HOUR = 20;  // الإغلاق 20:00 (آخر ساعة حجز 19:00 - 20:00)
   var DEFAULT_MAX = 4;  // السعة الافتراضية للساعة الواحدة (يُحدَّث من الخادم)
 
@@ -407,7 +407,7 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
 
     // 3) الساعة إلزامية — رسالة خطأ إن لم تُختَر
     if (!f.hour) {
-      showStatus('warn', '🕐 <span>اختر <b>ساعة الحجز</b> من الجدول (من 8:00 صباحاً حتى 7:00 مساءً) — الساعة حقل <b>إلزامي</b> عند الحجز عبر واتساب.</span>');
+      showStatus('warn', '🕐 <span>اختر <b>ساعة الحجز</b> من الجدول (من 9:00 صباحاً حتى 7:00 مساءً) — الساعة حقل <b>إلزامي</b> عند الحجز عبر واتساب.</span>');
       showToastMsg('⚠️ من فضلك اختر ساعة الحجز');
       return;
     }
@@ -449,7 +449,7 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
       return;
     }
     if (!f.hour) {
-      showStatus('warn', '🕐 <span>اختر <b>ساعة الحجز</b> من الجدول (من 8:00 صباحاً حتى 7:00 مساءً).</span>');
+      showStatus('warn', '🕐 <span>اختر <b>ساعة الحجز</b> من الجدول (من 9:00 صباحاً حتى 7:00 مساءً).</span>');
       return;
     }
 
@@ -562,8 +562,12 @@ window.ORAS_BOOKING_ENDPOINT = ENDPOINT;
       }
 
       if (res && res.conflict) {
-        var alts = (Array.isArray(res.alternatives) && res.alternatives.length > 0)
-          ? res.alternatives.map(function (a) {
+        // لا تعرض مواعيد قديمة من الخادم خارج قائمة الساعات الحالية (مثل 08:00).
+        var serverAlts = Array.isArray(res.alternatives)
+          ? res.alternatives.filter(function (a) { return a && HOURS.indexOf(a.hour) !== -1; })
+          : [];
+        var alts = serverAlts.length > 0
+          ? serverAlts.map(function (a) {
               return { date: a.date, hour: a.hour, label: a.label || (a.date + ' — ' + hourLabel(a.hour)) };
             })
           : findAlternatives(dateStr, hourStr, 3);

@@ -587,7 +587,7 @@ body.album-locked{overflow:hidden}
 }
 .field textarea{resize:vertical;min-height:88px}
 .field input[type=date]{color-scheme:light}
-/* شبكة الحجز بالساعة: 12 ساعة متواصلة من 8:00 صباحاً حتى 8:00 مساءً */
+/* شبكة مواعيد الحجز: 11 فترة ساعة من 9:00 صباحاً حتى 8:00 مساءً */
 .hours-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .hours-grid label{min-width:0}
 .hours-grid input{display:none}
@@ -1377,7 +1377,7 @@ section + section::after{
     <div class="sec-head reveal">
       <span class="kicker">الحجز</span>
       <h2 id="bookTitle">احجز موعدك <span class="grad-text">في أقل من دقيقة</span></h2>
-      <p id="bookLead">الحجز بالساعة: اختر اليوم والساعة المناسبة (من 8:00 صباحاً حتى 8:00 مساءً) واضغط «احجز الآن» — ستظهر لك رسالة التوفر فوراً ويفيد النظام الآلي حجزك تلقائياً. أو أرسل الطلب مباشرة عبر زر واتساب.</p>
+      <p id="bookLead">الحجز بالساعة: اختر اليوم والساعة المناسبة (من 9:00 صباحاً حتى 8:00 مساءً) واضغط «احجز الآن» — ستظهر لك رسالة التوفر فوراً ويفيد النظام الآلي حجزك تلقائياً. أو أرسل الطلب مباشرة عبر زر واتساب.</p>
     </div>
     <div class="book-grid">
       <form class="book-form reveal" id="bookForm">
@@ -1408,9 +1408,8 @@ section + section::after{
           </div>
         </div>
         <div class="field">
-          <label for="hourGrid">ساعة الحجز <span>*</span> <small style="font-weight:700;color:var(--ink-soft)">(دوام يومي: 12 ساعة متواصلة — من 8:00 صباحاً حتى 8:00 مساءً)</small></label>
+          <label for="hourGrid">ساعة الحجز <span>*</span> <small style="font-weight:700;color:var(--ink-soft)">(مواعيد الحجز: من 9:00 صباحاً حتى 8:00 مساءً)</small></label>
           <div class="hours-grid" id="hourGrid" role="radiogroup" aria-label="ساعة الحجز">
-            <label><input type="radio" name="hour" value="08:00"><span class="hour-btn">8:00 <small>صباحاً</small></span></label>
             <label><input type="radio" name="hour" value="09:00"><span class="hour-btn">9:00 <small>صباحاً</small></span></label>
             <label><input type="radio" name="hour" value="10:00"><span class="hour-btn">10:00 <small>صباحاً</small></span></label>
             <label><input type="radio" name="hour" value="11:00"><span class="hour-btn">11:00 <small>صباحاً</small></span></label>
@@ -2311,6 +2310,6 @@ window.orasAboutSlider = (function () {
 </script>
 <script src="oras-analytics.js?v=1" defer></script>
 <script src="oras-sanity.js?v=12" defer></script>
-<script src="oras-booking.js?v=5" defer></script>
+<script src="oras-booking.js?v=6" defer></script>
 </body>
 </html>
